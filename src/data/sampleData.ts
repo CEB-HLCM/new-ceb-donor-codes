@@ -63,6 +63,18 @@ export const sampleDonors: Donor[] = [
     TYPE: "0",
     "CEB CODE": "GATESV",
     "CONTRIBUTOR TYPE": "C05"
+  },
+  {
+    NAME: "World Bank",
+    TYPE: "0",
+    "CEB CODE": "WORLDBANK",
+    "CONTRIBUTOR TYPE": "C04A"
+  },
+  {
+    NAME: "Global Fund to Fight AIDS",
+    TYPE: "0",
+    "CEB CODE": "GFATM",
+    "CONTRIBUTOR TYPE": "C04B"
   }
 ];
 

@@ -33,15 +33,21 @@ const DonorsListPage: React.FC = () => {
   const [searchField, setSearchField] = useState<'NAME' | 'CEB CODE'>('NAME');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter donors based on search criteria
+  // Filter and sort donors based on search criteria
   const filteredDonors = React.useMemo(() => {
-    if (!searchText.trim()) return donorsWithTypes;
+    let filtered = donorsWithTypes;
     
-    const regex = new RegExp(searchText.trim(), 'gi');
-    return donorsWithTypes.filter(donor => {
-      const fieldValue = searchField === 'NAME' ? donor.NAME : donor['CEB CODE'];
-      return fieldValue.match(regex);
-    });
+    // Apply search filter if there's search text
+    if (searchText.trim()) {
+      const regex = new RegExp(searchText.trim(), 'gi');
+      filtered = donorsWithTypes.filter(donor => {
+        const fieldValue = searchField === 'NAME' ? donor.NAME : donor['CEB CODE'];
+        return fieldValue.match(regex);
+      });
+    }
+    
+    // Sort alphabetically by name
+    return filtered.sort((a, b) => a.NAME.localeCompare(b.NAME));
   }, [donorsWithTypes, searchText, searchField]);
 
   // Paginate filtered results
@@ -62,10 +68,7 @@ const DonorsListPage: React.FC = () => {
   };
 
   const getTypeDisplayName = (donor: DonorWithType) => {
-    if (donor.contributorTypeInfo) {
-      return donor.contributorTypeInfo.NAME;
-    }
-    // Fallback for missing contributor type info
+    // Display the basic TYPE field like the original app: Government vs Non-government
     return donor.TYPE === '1' ? 'Government' : 'Non-government';
   };
 
@@ -142,13 +145,14 @@ const DonorsListPage: React.FC = () => {
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>NAME</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>CEB CODE</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>TYPE</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>CONTRIBUTOR TYPE</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ACTIONS</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedDonors.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
                   No Results
                 </TableCell>
               </TableRow>
@@ -166,7 +170,23 @@ const DonorsListPage: React.FC = () => {
                       label={getTypeDisplayName(donor)}
                       color={getTypeColor(donor)}
                       size="small"
-                      title={donor.contributorTypeInfo?.DEFINITION}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={donor.contributorTypeInfo?.NAME || 'Unknown'}
+                      color="default"
+                      size="small"
+                      variant="outlined"
+                      title={`${donor['CONTRIBUTOR TYPE']}: ${donor.contributorTypeInfo?.DEFINITION || 'No definition available'}`}
+                      sx={{ 
+                        maxWidth: '200px',
+                        '& .MuiChip-label': {
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }
+                      }}
                     />
                   </TableCell>
                   <TableCell>
