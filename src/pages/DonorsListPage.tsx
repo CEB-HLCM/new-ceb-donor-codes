@@ -20,52 +20,93 @@ import {
   Alert,
   Chip,
   Link as MuiLink,
+  InputAdornment,
+  IconButton,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
+import {
+  Search as SearchIcon,
+  Clear as ClearIcon,
+  FilterList as FilterIcon,
+} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { useDataContext } from '../context/DataContext';
+import { useSearch } from '../hooks/useSearch';
+import { SearchType, SearchField } from '../services/searchService';
+import SearchSuggestions from '../components/search/SearchSuggestions';
 import type { DonorWithType } from '../types/donor';
 
 const ITEMS_PER_PAGE = 20;
 
 const DonorsListPage: React.FC = () => {
   const { donorsWithTypes, loading, error, reload } = useDataContext();
-  const [searchText, setSearchText] = useState('');
-  const [searchField, setSearchField] = useState<'NAME' | 'CEB CODE'>('NAME');
   const [currentPage, setCurrentPage] = useState(1);
+  const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
+  
+  // Enhanced search functionality
+  const {
+    query,
+    searchType,
+    searchField,
+    results,
+    stats,
+    isSearching,
+    setQuery,
+    setSearchType,
+    setSearchField,
+    clearSearch,
+    suggestions,
+    showSuggestions,
+    setShowSuggestions,
+    searchFromSuggestion,
+    filters,
+    setFilters,
+  } = useSearch({
+    defaultSearchType: SearchType.FUZZY,
+    defaultSearchField: SearchField.ALL,
+    debounceDelay: 300,
+    enableSuggestions: true,
+    enableHistory: false, // Disable history for list page
+  });
 
-  // Filter and sort donors based on search criteria
-  const filteredDonors = React.useMemo(() => {
-    let filtered = donorsWithTypes;
-    
-    // Apply search filter if there's search text
-    if (searchText.trim()) {
-      const regex = new RegExp(searchText.trim(), 'gi');
-      filtered = donorsWithTypes.filter(donor => {
-        const fieldValue = searchField === 'NAME' ? donor.NAME : donor['CEB CODE'];
-        return fieldValue.match(regex);
+  // Determine which data to display
+  const displayData = React.useMemo(() => {
+    if (query.trim() && useAdvancedSearch) {
+      // Use enhanced search results
+      return results.map(result => result.item);
+    } else if (query.trim()) {
+      // Fallback to basic regex search for backward compatibility
+      const regex = new RegExp(query.trim(), 'gi');
+      return donorsWithTypes.filter(donor => {
+        return donor.NAME.match(regex) || donor['CEB CODE'].match(regex);
       });
+    } else {
+      // Show all donors when no search
+      return donorsWithTypes;
     }
-    
-    // Sort alphabetically by name
-    return filtered.sort((a, b) => a.NAME.localeCompare(b.NAME));
-  }, [donorsWithTypes, searchText, searchField]);
+  }, [query, useAdvancedSearch, results, donorsWithTypes]);
 
-  // Paginate filtered results
+  // Sort and paginate data
+  const sortedData = React.useMemo(() => {
+    return [...displayData].sort((a, b) => a.NAME.localeCompare(b.NAME));
+  }, [displayData]);
+
   const paginatedDonors = React.useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredDonors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredDonors, currentPage]);
+    return sortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [sortedData, currentPage]);
 
-  const totalPages = Math.ceil(filteredDonors.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
   };
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(event.target.value);
-    setCurrentPage(1); // Reset to first page when searching
-  };
+  // Reset to first page when search changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [query, useAdvancedSearch]);
 
   const getTypeDisplayName = (donor: DonorWithType) => {
     // Display the basic TYPE field like the original app: Government vs Non-government
@@ -109,33 +150,165 @@ const DonorsListPage: React.FC = () => {
         CEB Donor Codes
       </Typography>
 
-      {/* Search Controls */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Search by</InputLabel>
-          <Select
-            value={searchField}
-            label="Search by"
-            onChange={(e) => setSearchField(e.target.value as 'NAME' | 'CEB CODE')}
+      {/* Enhanced Search Controls */}
+      <Box sx={{ mb: 3 }}>
+        {/* Search Mode Toggle */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <ToggleButtonGroup
+            value={useAdvancedSearch ? 'advanced' : 'basic'}
+            exclusive
+            onChange={(_, value) => {
+              if (value !== null) {
+                setUseAdvancedSearch(value === 'advanced');
+              }
+            }}
+            size="small"
           >
-            <MenuItem value="NAME">NAME</MenuItem>
-            <MenuItem value="CEB CODE">CEB CODE</MenuItem>
-          </Select>
-        </FormControl>
-        
-        <TextField
-          size="small"
-          placeholder="Search..."
-          value={searchText}
-          onChange={handleSearchChange}
-          sx={{ minWidth: 250 }}
-        />
+            <ToggleButton value="basic">Basic Search</ToggleButton>
+            <ToggleButton value="advanced">Smart Search</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
+        {/* Search Input */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', position: 'relative' }}>
+          {useAdvancedSearch && (
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Search Type</InputLabel>
+              <Select
+                value={searchType}
+                label="Search Type"
+                onChange={(e) => setSearchType(e.target.value as SearchType)}
+              >
+                <MenuItem value={SearchType.FUZZY}>Smart (Fuzzy)</MenuItem>
+                <MenuItem value={SearchType.PARTIAL}>Partial</MenuItem>
+                <MenuItem value={SearchType.EXACT}>Exact</MenuItem>
+                <MenuItem value={SearchType.SOUNDEX}>Sounds Like</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+          
+          <Box sx={{ position: 'relative', minWidth: 300 }}>
+            <TextField
+              size="small"
+              placeholder={useAdvancedSearch ? "Try: 'unted nations' or 'WHO'" : "Search..."}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color={isSearching ? 'primary' : 'action'} />
+                  </InputAdornment>
+                ),
+                endAdornment: query && (
+                  <InputAdornment position="end">
+                    <IconButton onClick={clearSearch} size="small" title="Clear search">
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ width: '100%' }}
+            />
+            
+            {/* Search Suggestions */}
+            {useAdvancedSearch && (
+              <SearchSuggestions
+                suggestions={suggestions}
+                searchHistory={[]}
+                query={query}
+                show={showSuggestions}
+                onSuggestionClick={searchFromSuggestion}
+                onHistoryClick={() => {}}
+                onClose={() => setShowSuggestions(false)}
+              />
+            )}
+          </Box>
+
+          {useAdvancedSearch && (
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Search In</InputLabel>
+              <Select
+                value={searchField}
+                label="Search In"
+                onChange={(e) => setSearchField(e.target.value as SearchField)}
+              >
+                <MenuItem value={SearchField.ALL}>All Fields</MenuItem>
+                <MenuItem value={SearchField.NAME}>Name Only</MenuItem>
+                <MenuItem value={SearchField.CEB_CODE}>Code Only</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+        </Box>
+
+        {/* Quick Filters for Advanced Search */}
+        {useAdvancedSearch && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+            <Chip
+              label="Government"
+              clickable
+              color={filters.governmentOnly ? 'primary' : 'default'}
+              variant={filters.governmentOnly ? 'filled' : 'outlined'}
+              onClick={() => setFilters({ 
+                governmentOnly: !filters.governmentOnly,
+                nonGovernmentOnly: false 
+              })}
+              size="small"
+            />
+            <Chip
+              label="Non-Government"
+              clickable
+              color={filters.nonGovernmentOnly ? 'primary' : 'default'}
+              variant={filters.nonGovernmentOnly ? 'filled' : 'outlined'}
+              onClick={() => setFilters({ 
+                nonGovernmentOnly: !filters.nonGovernmentOnly,
+                governmentOnly: false 
+              })}
+              size="small"
+            />
+            {(filters.governmentOnly || filters.nonGovernmentOnly || filters.contributorTypes.length > 0) && (
+              <Chip
+                label="Clear Filters"
+                clickable
+                color="secondary"
+                variant="outlined"
+                onClick={() => setFilters({ 
+                  governmentOnly: false, 
+                  nonGovernmentOnly: false,
+                  contributorTypes: []
+                })}
+                size="small"
+                icon={<ClearIcon />}
+              />
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Results Summary */}
-      <Typography variant="body2" sx={{ textAlign: 'center', mb: 2, color: 'text.secondary' }}>
-        {searchText ? `${filteredDonors.length} results found` : `${donorsWithTypes.length} total donors`}
-      </Typography>
+      <Box sx={{ textAlign: 'center', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant="body2" color="text.secondary">
+            {query ? (
+              <>
+                <strong>{sortedData.length}</strong> results found
+                {useAdvancedSearch && stats && (
+                  <> in {stats.searchTime < 1 ? '<1ms' : `${Math.round(stats.searchTime)}ms`}</>
+                )}
+              </>
+            ) : (
+              <><strong>{donorsWithTypes.length}</strong> total donors</>
+            )}
+          </Typography>
+          {query && useAdvancedSearch && (
+            <Chip 
+              label={`${searchType} search`} 
+              size="small" 
+              variant="outlined"
+            />
+          )}
+        </Box>
+      </Box>
 
       {/* Donors Table */}
       <TableContainer component={Paper} sx={{ mb: 3 }}>
@@ -218,7 +391,7 @@ const DonorsListPage: React.FC = () => {
       </TableContainer>
 
       {/* Pagination */}
-      {!searchText && totalPages > 1 && (
+      {!query && totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination
             count={totalPages}
