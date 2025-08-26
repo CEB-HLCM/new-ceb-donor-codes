@@ -2,3 +2,4 @@
 // Re-export all types for convenience
 
 export * from './donor';
+export * from './request';
