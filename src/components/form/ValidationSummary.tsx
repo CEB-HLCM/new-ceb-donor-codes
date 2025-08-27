@@ -37,15 +37,18 @@ interface ValidationSummaryProps {
 }
 
 const ValidationSummary: React.FC<ValidationSummaryProps> = ({
-  issues,
+  issues = [],
   isValid,
   completionPercentage,
   showProgress = true,
   compact = false
 }) => {
-  const errorCount = issues.filter(issue => issue.severity === 'error').length;
-  const warningCount = issues.filter(issue => issue.severity === 'warning').length;
-  const infoCount = issues.filter(issue => issue.severity === 'info').length;
+  // Defensive programming: ensure issues is always an array
+  const safeIssues = Array.isArray(issues) ? issues : [];
+  
+  const errorCount = safeIssues.filter(issue => issue.severity === 'error').length;
+  const warningCount = safeIssues.filter(issue => issue.severity === 'warning').length;
+  const infoCount = safeIssues.filter(issue => issue.severity === 'info').length;
 
   const getIcon = (severity: string) => {
     switch (severity) {
@@ -114,7 +117,7 @@ const ValidationSummary: React.FC<ValidationSummaryProps> = ({
               variant="outlined"
             />
           )}
-          {isValid && issues.length === 0 && (
+          {isValid && safeIssues.length === 0 && (
             <Chip
               icon={<CheckIcon fontSize="small" />}
               label="Valid"
@@ -198,9 +201,9 @@ const ValidationSummary: React.FC<ValidationSummaryProps> = ({
         </Stack>
 
         {/* Issue list */}
-        {issues.length > 0 ? (
+        {safeIssues.length > 0 ? (
           <List dense>
-            {issues.map((issue, index) => (
+            {safeIssues.map((issue, index) => (
               <ListItem key={index} sx={{ px: 0 }}>
                 <ListItemIcon sx={{ minWidth: 36 }}>
                   {getIcon(issue.severity)}

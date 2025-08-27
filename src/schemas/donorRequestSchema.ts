@@ -6,8 +6,19 @@ export const donorRequestSchema = z.object({
   entityName: z
     .string()
     .min(2, 'Entity name must be at least 2 characters')
-    .max(100, 'Entity name cannot exceed 100 characters')
-    .regex(/^[a-zA-Z0-9\s&\-\.]+$/, 'Entity name contains invalid characters'),
+    .max(200, 'Entity name cannot exceed 200 characters')
+    .refine(
+      (val) => {
+        // Allow all printable characters except control characters
+        // This includes letters, numbers, spaces, and common punctuation/symbols
+        const hasValidChars = /^[\x20-\x7E\u00A0-\uFFFF]+$/.test(val);
+        const hasContent = val.trim().length > 0;
+        return hasValidChars && hasContent;
+      },
+      { 
+        message: 'Entity name contains invalid characters. Please use standard letters, numbers, spaces, and common punctuation only.' 
+      }
+    ),
 
   suggestedCode: z
     .string()
@@ -28,6 +39,11 @@ export const donorRequestSchema = z.object({
     .string()
     .min(1, 'Please select a contributor type'),
 
+  donorType: z
+    .enum(['0', '1'], {
+      errorMap: () => ({ message: 'Please select Government or Non-Government' })
+    }),
+
   justification: z
     .string()
     .min(10, 'Justification must be at least 10 characters')
@@ -35,16 +51,22 @@ export const donorRequestSchema = z.object({
 
   contactEmail: z
     .string()
-    .refine(
-      (val) => val === '' || z.string().email().safeParse(val).success,
-      { message: 'Please enter a valid email address' }
-    ),
+    .email('Please enter a valid email address'),
 
   contactName: z
     .string()
+    .min(2, 'Contact name must be at least 2 characters')
+    .max(100, 'Contact name cannot exceed 100 characters')
     .refine(
-      (val) => val === '' || (val.length >= 2 && val.length <= 50),
-      { message: 'Contact name must be 2-50 characters when provided' }
+      (val) => {
+        // Allow printable characters for contact names
+        const hasValidChars = /^[\x20-\x7E\u00A0-\uFFFF]+$/.test(val);
+        const hasContent = val.trim().length > 0;
+        return hasValidChars && hasContent;
+      },
+      { 
+        message: 'Contact name contains invalid characters. Please use standard letters, numbers, spaces, and common punctuation only.' 
+      }
     ),
 
   priority: z
@@ -66,6 +88,7 @@ export const fieldSchemas = {
   suggestedCode: donorRequestSchema.shape.suggestedCode,
   customCode: donorRequestSchema.shape.customCode,
   contributorType: donorRequestSchema.shape.contributorType,
+  donorType: donorRequestSchema.shape.donorType,
   justification: donorRequestSchema.shape.justification,
   contactEmail: donorRequestSchema.shape.contactEmail,
   contactName: donorRequestSchema.shape.contactName,

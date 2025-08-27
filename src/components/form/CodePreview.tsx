@@ -28,6 +28,8 @@ interface CodePreviewProps {
   error: string | null;
   onRegenerate?: () => void;
   entityName?: string;
+  selectedCode?: string;
+  onCodeSelect?: (code: string) => void;
 }
 
 const CodePreview: React.FC<CodePreviewProps> = ({
@@ -35,7 +37,9 @@ const CodePreview: React.FC<CodePreviewProps> = ({
   isGenerating,
   error,
   onRegenerate,
-  entityName
+  entityName,
+  selectedCode,
+  onCodeSelect
 }) => {
   if (isGenerating) {
     return (
@@ -102,16 +106,26 @@ const CodePreview: React.FC<CodePreviewProps> = ({
   const CodeSuggestionCard: React.FC<{ 
     suggestion: GeneratedCodeSuggestion; 
     isPrimary?: boolean;
-  }> = ({ suggestion, isPrimary = false }) => (
-    <Box
-      sx={{
-        p: 2,
-        border: 1,
-        borderColor: isPrimary ? 'primary.main' : 'divider',
-        borderRadius: 1,
-        backgroundColor: isPrimary ? 'primary.50' : 'background.paper'
-      }}
-    >
+  }> = ({ suggestion, isPrimary = false }) => {
+    const isSelected = selectedCode === suggestion.code;
+    
+    return (
+      <Box
+        sx={{
+          p: 2,
+          border: 1,
+          borderColor: isSelected ? 'primary.main' : (isPrimary ? 'primary.main' : 'divider'),
+          borderRadius: 1,
+          backgroundColor: isSelected ? 'primary.100' : (isPrimary ? 'primary.50' : 'background.paper'),
+          cursor: onCodeSelect ? 'pointer' : 'default',
+          transition: 'all 0.2s ease',
+          '&:hover': onCodeSelect ? {
+            borderColor: 'primary.main',
+            backgroundColor: isSelected ? 'primary.100' : 'primary.25'
+          } : {}
+        }}
+        onClick={() => onCodeSelect?.(suggestion.code)}
+      >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography 
@@ -165,7 +179,8 @@ const CodePreview: React.FC<CodePreviewProps> = ({
         </Tooltip>
       </Box>
     </Box>
-  );
+    );
+  };
 
   return (
     <Card variant="outlined">

@@ -15,13 +15,16 @@ import {
   FormLabel,
   Stack,
   Tooltip,
-  Alert
+  Alert,
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import {
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import type { GeneratedCodeSuggestion } from '../../types/request';
 
@@ -38,6 +41,10 @@ interface CodeSuggestionsProps {
     issues: string[];
     suggestions: string[];
   };
+  isGenerating?: boolean;
+  error?: string | null;
+  entityName?: string;
+  onRegenerate?: () => void;
 }
 
 const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
@@ -47,7 +54,11 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
   allowCustomInput = true,
   customCode = '',
   onCustomCodeChange,
-  customCodeValidation
+  customCodeValidation,
+  isGenerating,
+  error,
+  entityName,
+  onRegenerate
 }) => {
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return 'success';
@@ -71,20 +82,15 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
         backgroundColor: selectedCode === suggestion.code ? 'primary.50' : 'background.paper',
         cursor: 'pointer',
         transition: 'all 0.2s ease',
+        flexGrow: 1,
         '&:hover': {
           borderColor: 'primary.main',
           backgroundColor: 'primary.25'
         }
       }}
-      onClick={() => onCodeSelect(suggestion.code)}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Radio
-            checked={selectedCode === suggestion.code}
-            value={suggestion.code}
-            size="small"
-          />
           <Typography variant="subtitle1" fontWeight="medium">
             {suggestion.code}
           </Typography>
@@ -106,11 +112,11 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
         </Box>
       </Box>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, ml: 4 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
         {suggestion.reasoning}
       </Typography>
 
-      <Box sx={{ ml: 4, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Chip
           label={suggestion.pattern.type}
           size="small"
@@ -156,12 +162,17 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
                 <FormControlLabel
                   key={`suggestion-${index}`}
                   value={suggestion.code}
-                  control={<Box sx={{ display: 'none' }} />} // Hide default radio
-                  label=""
-                  sx={{ m: 0 }}
-                >
-                  <SuggestionOption suggestion={suggestion} />
-                </FormControlLabel>
+                  control={
+                    <Radio
+                      checked={selectedCode === suggestion.code}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <SuggestionOption suggestion={suggestion} />
+                  }
+                  sx={{ m: 0, alignItems: 'flex-start' }}
+                />
               ))}
 
               {/* Custom code input option */}

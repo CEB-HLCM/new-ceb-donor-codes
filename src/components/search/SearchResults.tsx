@@ -75,7 +75,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         dangerouslySetInnerHTML={{ __html: highlighted }}
         sx={{
           '& mark': { 
-            backgroundColor: '#fff3cd', 
+            backgroundColor: 'warning.light', 
             padding: '0 2px',
             borderRadius: '2px',
             fontWeight: 'bold'
@@ -210,25 +210,33 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      component={Link}
-                      to="/maps"
-                      state={{
-                        name: donor.NAME,
-                        code: donor['CEB CODE'],
-                        type: donor.TYPE,
-                      }}
-                      variant="contained"
-                      size="small"
-                      disabled
-                      sx={{ 
-                        backgroundColor: 'grey.500',
-                        color: 'white',
-                        '&:hover': { backgroundColor: 'grey.600' }
-                      }}
-                    >
-                      Update
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        component={Link}
+                        to={`/donor-update/${encodeURIComponent(donor['CEB CODE'])}`}
+                        variant="contained"
+                        size="small"
+                        sx={{ 
+                          backgroundColor: 'warning.main',
+                          color: 'white',
+                          '&:hover': { backgroundColor: 'warning.dark' }
+                        }}
+                      >
+                        Update
+                      </Button>
+                      <Button
+                        component={Link}
+                        to={`/donor-remove/${encodeURIComponent(donor['CEB CODE'])}`}
+                        variant="contained"
+                        size="small"
+                        color="error"
+                        sx={{ 
+                          '&:hover': { backgroundColor: 'error.dark' }
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </Box>
                   </TableCell>
                 </TableRow>
               );

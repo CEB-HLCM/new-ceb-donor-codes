@@ -1,7 +1,10 @@
 // Request form and code generation interfaces
 
+export type RequestAction = 'new' | 'update' | 'remove';
+
 export interface DonorRequest {
   id: string;
+  action: RequestAction; // NEW: Type of request
   entityName: string;
   suggestedCode: string;
   customCode?: string;
@@ -13,6 +16,22 @@ export interface DonorRequest {
   additionalNotes?: string;
   createdAt: Date;
   status: 'draft' | 'pending' | 'submitted' | 'approved' | 'rejected';
+  // NEW: Original donor data for update/remove requests
+  originalDonor?: {
+    name: string;
+    code: string;
+    contributorType: string;
+    type: string;
+  };
+  // NEW: For removal requests
+  removalReason?: 'duplicate' | 'obsolete' | 'merged' | 'incorrect' | 'other';
+  removalJustification?: string;
+  // NEW: For update requests - changes summary
+  proposedChanges?: {
+    name?: { from: string; to: string };
+    code?: { from: string; to: string };
+    contributorType?: { from: string; to: string };
+  };
 }
 
 export interface CodeGenerationOptions {
@@ -66,6 +85,14 @@ export interface DonorRequestForm {
   contactName: string;
   priority: 'low' | 'normal' | 'high';
   additionalNotes: string;
+}
+
+// NEW: Interface for donor data from the main donor list
+export interface DonorData {
+  'CEB CODE': string;
+  NAME: string;
+  'CONTRIBUTOR TYPE': string;
+  TYPE: string;
 }
 
 // Request management interfaces
