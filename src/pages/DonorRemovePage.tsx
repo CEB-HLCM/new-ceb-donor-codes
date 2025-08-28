@@ -45,9 +45,9 @@ const removalRequestSchema = z.object({
   contactName: z.string().min(2, 'Contact name is required'),
   contactEmail: z.string().email('Valid email is required'),
   priority: z.enum(['low', 'normal', 'high']),
-  removalReason: z.enum(['duplicate', 'obsolete', 'merged', 'incorrect', 'other', ''], {
-    required_error: 'Please select a reason for removal'
-  }).refine(val => val !== '', { message: 'Please select a reason for removal' }),
+  removalReason: z.enum(['duplicate', 'obsolete', 'merged', 'incorrect', 'other']).refine(val => val !== '', { 
+    message: 'Please select a reason for removal' 
+  }),
   removalJustification: z.string().min(10, 'Detailed justification is required (minimum 10 characters)'),
   additionalNotes: z.string().optional()
 });

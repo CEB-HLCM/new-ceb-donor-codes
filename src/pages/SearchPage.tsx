@@ -129,7 +129,7 @@ const SearchPage: React.FC = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => setShowSuggestions(true)}
-              size="large"
+              size="medium"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

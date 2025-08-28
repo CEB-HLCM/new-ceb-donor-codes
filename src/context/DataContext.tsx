@@ -1,6 +1,7 @@
 // React Context for app-wide data access and management
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import type { DataState } from '../types/donor';
 import { useAppDataWithReload } from '../hooks/useAppData';
 

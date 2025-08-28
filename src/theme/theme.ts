@@ -80,7 +80,7 @@ const themeOptions = {
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
+          textTransform: 'none' as const,
           borderRadius: 4,
         },
         contained: {

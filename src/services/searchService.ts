@@ -4,26 +4,30 @@
  */
 
 import Fuse from 'fuse.js';
+import type { FuseResult } from 'fuse.js';
 import { debounce } from 'lodash';
 import type { DonorWithType } from '../types/donor';
 import { soundex, soundexMatch } from '../utils/soundex';
 
-export enum SearchType {
-  EXACT = 'exact',
-  PARTIAL = 'partial',
-  FUZZY = 'fuzzy',
-  SOUNDEX = 'soundex'
-}
+type FuseResultMatch = FuseResult<any>['matches'];
+type FuseOptions = Fuse.IFuseOptions<any>;
 
-export enum SearchField {
-  NAME = 'NAME',
-  CEB_CODE = 'CEB CODE',
-  ALL = 'ALL'
-}
+export const SearchType = {
+  EXACT: 'exact',
+  PARTIAL: 'partial',
+  FUZZY: 'fuzzy',
+  SOUNDEX: 'soundex'
+} as const
+
+export const SearchField = {
+  NAME: 'NAME',
+  CEB_CODE: 'CEB CODE',
+  ALL: 'ALL'
+} as const
 
 export interface SearchOptions {
-  searchType: SearchType;
-  searchField: SearchField;
+  searchType: typeof SearchType[keyof typeof SearchType];
+  searchField: typeof SearchField[keyof typeof SearchField];
   fuzzyThreshold?: number; // 0.0 (exact) to 1.0 (very fuzzy)
   includeScore?: boolean;
   includeMatches?: boolean;
@@ -33,7 +37,7 @@ export interface SearchOptions {
 export interface SearchResult {
   item: DonorWithType;
   score?: number;
-  matches?: Fuse.FuseResultMatch[];
+  matches?: FuseResultMatch;
   highlightedName?: string;
   highlightedCode?: string;
 }
@@ -58,7 +62,7 @@ class SearchService {
   private maxHistorySize = 10;
 
   // Fuse.js configuration for different search scenarios
-  private getFuseOptions(searchField: SearchField, threshold: number = 0.3): Fuse.IFuseOptions<DonorWithType> {
+  private getFuseOptions(searchField: typeof SearchField[keyof typeof SearchField], threshold: number = 0.3): FuseOptions {
     const keys = searchField === SearchField.ALL 
       ? ['NAME', 'CEB CODE', 'contributorTypeInfo.NAME']
       : [searchField];
@@ -79,7 +83,7 @@ class SearchService {
         const relevanceB = (1 - (b.score ?? 1)) * 100;
         
         // Sort by relevance (highest first), then by name length (shorter first)
-        if (relevanceA !== relevanceB) return relevanceB - relevanceA; // Higher relevance first
+        if (Math.abs(relevanceA - relevanceB) > 0.01) return relevanceB - relevanceA; // Higher relevance first
         
         const nameA = a.item?.NAME ?? '';
         const nameB = b.item?.NAME ?? '';

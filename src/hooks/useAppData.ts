@@ -1,7 +1,7 @@
 // Custom React hook for managing application data loading
 
 import { useState, useEffect } from 'react';
-import type { Donor, ContributorType, DonorWithType, DataState } from '../types/donor';
+import type { DataState } from '../types/donor';
 import { fetchAllData } from '../services/dataService';
 import { logDataReport } from '../utils/dataValidation';
 

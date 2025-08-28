@@ -41,7 +41,7 @@ export const donorRequestSchema = z.object({
 
   donorType: z
     .enum(['0', '1'], {
-      errorMap: () => ({ message: 'Please select Government or Non-Government' })
+      message: 'Please select Government or Non-Government'
     }),
 
   justification: z
@@ -70,9 +70,9 @@ export const donorRequestSchema = z.object({
     ),
 
   priority: z
-    .enum(['low', 'normal', 'high', ''], {
-      errorMap: () => ({ message: 'Please select a priority level' })
-    }),
+    .enum(['low', 'normal', 'high'], {
+      message: 'Please select a priority level'
+    })
 
   additionalNotes: z
     .string()

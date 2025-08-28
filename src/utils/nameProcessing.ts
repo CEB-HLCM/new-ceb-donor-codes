@@ -127,7 +127,7 @@ export function cleanCode(code: string): string {
 /**
  * Check if a code follows common patterns
  */
-export function analyzeCodePattern(code: string): CodePattern {
+export function analyzeCodePattern(code: string): any {
   if (!code) {
     return {
       type: 'custom',
