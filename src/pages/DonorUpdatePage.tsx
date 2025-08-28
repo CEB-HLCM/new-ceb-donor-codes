@@ -36,6 +36,7 @@ import {
 
 import { useDataContext } from '../context/DataContext';
 import { useCodeGeneration } from '../hooks/useCodeGeneration';
+import { useContactPersistence } from '../hooks/useContactPersistence';
 
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
@@ -151,6 +152,14 @@ const DonorUpdatePage: React.FC = () => {
     }
   }, [entityName, contributorType, generateCodes, originalDonor]);
 
+  // Auto-fill contact details from storage when loaded
+  useEffect(() => {
+    if (contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
+      setValue('contactName', contactDetails.contactName);
+      setValue('contactEmail', contactDetails.contactEmail);
+    }
+  }, [contactLoaded, contactDetails, setValue]);
+
   // Handle step validation
   const isStepValid = useCallback(async (step: number): Promise<boolean> => {
     const fieldsToValidate: (keyof DonorRequestFormData)[] = [];
@@ -253,6 +262,9 @@ const DonorUpdatePage: React.FC = () => {
   // Combine all suggestions for unified CodeSuggestions component (like in new donor form)
   const allSuggestions = codeResult ? [codeResult.primary, ...codeResult.alternatives] : [];
   const customCodeValidation = customCode ? validateCustomCode(customCode) : null;
+
+  // Smart contact details persistence
+  const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
 
   if (dataLoading) {
     return (

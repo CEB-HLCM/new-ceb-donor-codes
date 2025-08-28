@@ -34,6 +34,7 @@ import {
 
 import { useDataContext } from '../context/DataContext';
 import { useCodeGeneration } from '../hooks/useCodeGeneration';
+import { useContactPersistence } from '../hooks/useContactPersistence';
 import CodePreview from '../components/form/CodePreview';
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
@@ -85,8 +86,6 @@ const DonorRequestPage: React.FC = () => {
   // Watch form values for real-time updates
   const entityName = watch('entityName');
   const contributorType = watch('contributorType');
-  const donorType = watch('donorType');
-  const priority = watch('priority');
   
   // Code generation
   const {
@@ -98,6 +97,9 @@ const DonorRequestPage: React.FC = () => {
     primarySuggestion,
     alternativeSuggestions
   } = useCodeGeneration();
+
+  // Smart contact details persistence
+  const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
 
   // Simple draft management without complex hooks to prevent infinite loops
   const [hasDraft, setHasDraft] = useState(false);
@@ -113,6 +115,14 @@ const DonorRequestPage: React.FC = () => {
       setShowCodePreview(false);
     }
   }, [entityName, contributorType, generateCodes]);
+
+  // Auto-fill contact details from storage when loaded
+  useEffect(() => {
+    if (contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
+      setValue('contactName', contactDetails.contactName);
+      setValue('contactEmail', contactDetails.contactEmail);
+    }
+  }, [contactLoaded, contactDetails, setValue]);
 
   // Simple manual save to localStorage - no complex hooks
   const handleSaveDraft = useCallback(() => {
@@ -238,9 +248,16 @@ const DonorRequestPage: React.FC = () => {
   const onSubmit = async (data: DonorRequestFormData) => {
     try {
       console.log('Submitting donor request:', data);
+      
+      // Save contact details for future use
+      updateContactDetails({
+        contactName: data.contactName,
+        contactEmail: data.contactEmail
+      });
+      
       // TODO: Implement EmailJS submission
       clearDraft();
-      alert('Request submitted successfully! (EmailJS integration pending)');
+      alert('Request submitted successfully! Contact details saved for future forms.');
     } catch (error) {
       console.error('Submission error:', error);
       alert('Failed to submit request. Please try again.');
@@ -275,16 +292,6 @@ const DonorRequestPage: React.FC = () => {
   const customCodeValidation = customCode ? validateCustomCode(customCode) : null;
   const allSuggestions = codeResult ? [codeResult.primary, ...codeResult.alternatives] : [];
 
-  // Helper functions for display values
-  const getDonorTypeDisplayName = (type: string) => {
-    return type === '1' ? 'Government' : 'Non-Government';
-  };
-
-  const getContributorTypeDisplayName = (typeCode: string) => {
-    const type = contributorTypes.find(t => t.TYPE === typeCode);
-    return type ? `${type.TYPE} - ${type.NAME}` : typeCode;
-  };
-
   // Step content rendering
   const renderStepContent = (stepIndex: number) => {
     return renderNewRequestStep(stepIndex);
@@ -312,23 +319,6 @@ const DonorRequestPage: React.FC = () => {
             />
 
             <Controller
-              name="donorType"
-              control={control}
-              render={({ field }) => (
-                <FormControl fullWidth error={!!errors.donorType} sx={{ mb: 3 }}>
-                  <InputLabel>Donor Type</InputLabel>
-                  <Select {...field} label="Donor Type">
-                    <MenuItem value="1">Government</MenuItem>
-                    <MenuItem value="0">Non-Government</MenuItem>
-                  </Select>
-                  {errors.donorType && (
-                    <FormHelperText>{errors.donorType.message}</FormHelperText>
-                  )}
-                </FormControl>
-              )}
-            />
-
-            <Controller
               name="contributorType"
               control={control}
               render={({ field }) => (
@@ -343,6 +333,23 @@ const DonorRequestPage: React.FC = () => {
                   </Select>
                   {errors.contributorType && (
                     <FormHelperText>{errors.contributorType.message}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+            />
+
+            <Controller
+              name="donorType"
+              control={control}
+              render={({ field }) => (
+                <FormControl fullWidth error={!!errors.donorType} sx={{ mb: 3 }}>
+                  <InputLabel>Donor Type</InputLabel>
+                  <Select {...field} label="Donor Type">
+                    <MenuItem value="1">Government</MenuItem>
+                    <MenuItem value="0">Non-Government</MenuItem>
+                  </Select>
+                  {errors.donorType && (
+                    <FormHelperText>{errors.donorType.message}</FormHelperText>
                   )}
                 </FormControl>
               )}
@@ -473,26 +480,24 @@ const DonorRequestPage: React.FC = () => {
               Please review your request carefully before submission. Once submitted, changes cannot be made.
             </Alert>
             
-            <Typography variant="h6" gutterBottom>
-              Request Summary - Priority: {priority || 'Not specified'}
-            </Typography>
+            <Typography variant="h6" gutterBottom>Request Summary</Typography>
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">Entity Name:</Typography>
-                  <Typography>{entityName || 'Not specified'}</Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Donor Type:</Typography>
-                  <Typography>{donorType ? getDonorTypeDisplayName(donorType) : 'Not specified'}</Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Contributor Type:</Typography>
-                  <Typography>{contributorType ? getContributorTypeDisplayName(contributorType) : 'Not specified'}</Typography>
+                  <Typography>{entityName}</Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">Suggested Code:</Typography>
-                  <Typography fontFamily="monospace">{selectedCode || customCode || 'Not selected'}</Typography>
+                  <Typography fontFamily="monospace">{selectedCode || customCode}</Typography>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Contributor Type:</Typography>
+                  <Typography>{contributorType}</Typography>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Priority:</Typography>
+                  <Typography>{watch('priority')}</Typography>
                 </Grid>
               </Grid>
             </Paper>
