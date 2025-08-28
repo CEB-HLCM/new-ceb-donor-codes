@@ -28,10 +28,17 @@ const CONTRIBUTOR_TYPES_CSV_URL = isDevelopment
  */
 function parseCSV<T>(csvText: string): T[] {
   const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return [];
+  console.log(`CSV Parsing: ${lines.length} lines found`);
+  
+  if (lines.length < 2) {
+    console.warn('CSV has less than 2 lines:', lines);
+    return [];
+  }
 
   // Clean up headers (remove BOM and extra whitespace)
   const headers = lines[0].replace(/^\uFEFF/, '').split(',').map(h => h.trim());
+  console.log('CSV Headers:', headers);
+  
   const result: T[] = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -40,7 +47,10 @@ function parseCSV<T>(csvText: string): T[] {
 
     // Handle CSV parsing with potential quoted fields
     const values = parseCSVLine(line);
-    if (values.length !== headers.length) continue;
+    if (values.length !== headers.length) {
+      console.warn(`Line ${i} has ${values.length} values but expected ${headers.length}:`, values);
+      continue;
+    }
 
     const obj: any = {};
     headers.forEach((header, index) => {
@@ -49,6 +59,7 @@ function parseCSV<T>(csvText: string): T[] {
     result.push(obj);
   }
 
+  console.log(`CSV Parsing completed: ${result.length} records`);
   return result;
 }
 
@@ -114,10 +125,19 @@ async function fetchCSV(url: string, retries = 3): Promise<string> {
       if (isGitHubAPI) {
         // GitHub API returns JSON with base64-encoded content
         const data = await response.json();
+        console.log('GitHub API Response:', { 
+          encoding: data.encoding, 
+          contentLength: data.content?.length, 
+          name: data.name,
+          path: data.path 
+        });
+        
         if (data.content && data.encoding === 'base64') {
-          csvText = atob(data.content);
+          // Clean base64 content (remove newlines that GitHub includes)
+          const cleanBase64 = data.content.replace(/\n/g, '');
+          csvText = atob(cleanBase64);
         } else {
-          throw new Error('Invalid GitHub API response format');
+          throw new Error(`Invalid GitHub API response format: encoding=${data.encoding}, hasContent=${!!data.content}`);
         }
       } else {
         // Direct CSV file
@@ -149,9 +169,16 @@ async function fetchCSV(url: string, retries = 3): Promise<string> {
 export async function fetchDonors(): Promise<ApiResponse<Donor[]>> {
   try {
     const csvText = await fetchCSV(DONORS_CSV_URL);
-    const donors = parseCSV<Donor>(csvText);
+    console.log('Raw CSV Text Sample:', csvText.substring(0, 500) + '...');
     
+    const donors = parseCSV<Donor>(csvText);
     console.log(`Loaded ${donors.length} donors from CSV`);
+    
+    // Log first few donors to check data structure
+    if (donors.length > 0) {
+      console.log('First 3 donors:', donors.slice(0, 3));
+    }
+    
     return {
       data: donors,
       success: true,
