@@ -3,14 +3,23 @@
 import type { Donor, ContributorType, DonorWithType, ApiResponse } from '../types/donor';
 import { sampleDonors, sampleContributorTypes } from '../data/sampleData';
 
-// CSV data URLs - Direct GitHub raw URLs for production, proxy for development
+// CSV data URLs - Handle CORS issues in production
 const isDevelopment = import.meta.env.DEV;
-const BASE_URL = isDevelopment 
-  ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main'
-  : 'https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main';
 
-const DONORS_CSV_URL = `${BASE_URL}/DONORS.csv`;
-const CONTRIBUTOR_TYPES_CSV_URL = `${BASE_URL}/CONTRIBUTOR_TYPES.csv`;
+// GitHub repository details
+const GITHUB_OWNER = 'CEB-HLCM';
+const GITHUB_REPO = 'FS-Public-Codes';
+const GITHUB_BRANCH = 'main';
+
+// For development, use Vite proxy
+// For production, use GitHub API to get file contents (bypasses CORS)
+const DONORS_CSV_URL = isDevelopment
+  ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/DONORS.csv'
+  : `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/DONORS.csv?ref=${GITHUB_BRANCH}`;
+
+const CONTRIBUTOR_TYPES_CSV_URL = isDevelopment
+  ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/CONTRIBUTOR_TYPES.csv'
+  : `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/CONTRIBUTOR_TYPES.csv?ref=${GITHUB_BRANCH}`;
 
 /**
  * Lightweight CSV parser - converts CSV text to array of objects
@@ -78,18 +87,22 @@ function parseCSVLine(line: string): string[] {
 
 /**
  * Fetch CSV data from a URL with error handling and retry logic
- * @param url - CSV file URL
+ * Handles both direct CSV URLs (development) and GitHub API responses (production)
+ * @param url - CSV file URL or GitHub API URL
  * @param retries - Number of retry attempts
  * @returns Promise with CSV text content
  */
 async function fetchCSV(url: string, retries = 3): Promise<string> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      const isGitHubAPI = url.includes('api.github.com');
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'text/csv,text/plain,*/*',
+          'Accept': isGitHubAPI ? 'application/vnd.github.v3+json' : 'text/csv,text/plain,*/*',
           'Cache-Control': 'no-cache',
+          ...(isGitHubAPI ? { 'User-Agent': 'CEB-Donor-Codes-App' } : {}),
         },
       });
 
@@ -97,7 +110,21 @@ async function fetchCSV(url: string, retries = 3): Promise<string> {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const csvText = await response.text();
+      let csvText: string;
+      
+      if (isGitHubAPI) {
+        // GitHub API returns JSON with base64-encoded content
+        const data = await response.json();
+        if (data.content && data.encoding === 'base64') {
+          csvText = atob(data.content);
+        } else {
+          throw new Error('Invalid GitHub API response format');
+        }
+      } else {
+        // Direct CSV file
+        csvText = await response.text();
+      }
+
       if (!csvText.trim()) {
         throw new Error('Empty CSV response');
       }
