@@ -72,7 +72,7 @@ export const donorRequestSchema = z.object({
   priority: z
     .enum(['low', 'normal', 'high'], {
       message: 'Please select a priority level'
-    })
+    }),
 
   additionalNotes: z
     .string()
