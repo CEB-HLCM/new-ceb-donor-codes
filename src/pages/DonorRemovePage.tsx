@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 
 import { useDataContext } from '../context/DataContext';
+import { useContactPersistence } from '../hooks/useContactPersistence';
 import OriginalDonorCard from '../components/form/OriginalDonorCard';
 import RemovalJustification from '../components/form/RemovalJustification';
 
@@ -116,6 +117,17 @@ const DonorRemovePage: React.FC = () => {
   const removalJustification = watch('removalJustification');
   const priority = watch('priority');
 
+  // Smart contact details persistence
+  const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
+
+  // Auto-fill contact details from storage when loaded
+  useEffect(() => {
+    if (contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
+      setValue('contactName', contactDetails.contactName);
+      setValue('contactEmail', contactDetails.contactEmail);
+    }
+  }, [contactLoaded, contactDetails, setValue]);
+
   // Handle step validation
   const isStepValid = useCallback(async (step: number): Promise<boolean> => {
     const fieldsToValidate: (keyof RemovalRequestFormData)[] = [];
@@ -177,13 +189,19 @@ const DonorRemovePage: React.FC = () => {
       removalJustification: data.removalJustification
     };
 
+    // Save contact details for future use
+    updateContactDetails({
+      contactName: data.contactName,
+      contactEmail: data.contactEmail
+    });
+
     // TODO: Add to basket (Phase 5)
     console.log('Removal request created:', removalRequest);
     
     // For now, show success and navigate back
-    alert('Removal request created successfully! In Phase 5, this will be added to your request basket.');
+    alert('Removal request created successfully! Contact details saved for future forms.');
     navigate('/donors');
-  }, [originalDonor, navigate]);
+  }, [originalDonor, navigate, updateContactDetails]);
 
   if (dataLoading) {
     return (

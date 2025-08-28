@@ -152,14 +152,6 @@ const DonorUpdatePage: React.FC = () => {
     }
   }, [entityName, contributorType, generateCodes, originalDonor]);
 
-  // Auto-fill contact details from storage when loaded
-  useEffect(() => {
-    if (contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
-      setValue('contactName', contactDetails.contactName);
-      setValue('contactEmail', contactDetails.contactEmail);
-    }
-  }, [contactLoaded, contactDetails, setValue]);
-
   // Handle step validation
   const isStepValid = useCallback(async (step: number): Promise<boolean> => {
     const fieldsToValidate: (keyof DonorRequestFormData)[] = [];
@@ -208,7 +200,33 @@ const DonorUpdatePage: React.FC = () => {
     // Removed auto-advance - let user click Continue button
   };
 
-  // Form submission
+
+
+  // Handle custom code changes
+  const handleCustomCodeChange = (code: string) => {
+    setCustomCode(code);
+    if (selectedCode === 'custom' || selectedCode === '') {
+      setValue('suggestedCode', code);
+      trigger('suggestedCode');
+    }
+  };
+
+  // Combine all suggestions for unified CodeSuggestions component (like in new donor form)
+  const allSuggestions = codeResult ? [codeResult.primary, ...codeResult.alternatives] : [];
+  const customCodeValidation = customCode ? validateCustomCode(customCode) : null;
+
+  // Smart contact details persistence
+  const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
+
+  // Auto-fill contact details from storage when loaded
+  useEffect(() => {
+    if (contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
+      setValue('contactName', contactDetails.contactName);
+      setValue('contactEmail', contactDetails.contactEmail);
+    }
+  }, [contactLoaded, contactDetails, setValue]);
+
+  // Form submission (moved after hook declaration to access updateContactDetails)
   const onSubmit = useCallback((data: DonorRequestFormData) => {
     if (!originalDonor) return;
 
@@ -242,29 +260,19 @@ const DonorUpdatePage: React.FC = () => {
       }
     };
 
+    // Save contact details for future use
+    updateContactDetails({
+      contactName: data.contactName,
+      contactEmail: data.contactEmail
+    });
+
     // TODO: Add to basket (Phase 5)
     console.log('Update request created:', updateRequest);
     
     // For now, show success and navigate back
-    alert('Update request created successfully! In Phase 5, this will be added to your request basket.');
+    alert('Update request created successfully! Contact details saved for future forms.');
     navigate('/donors');
-  }, [originalDonor, navigate]);
-
-  // Handle custom code changes
-  const handleCustomCodeChange = (code: string) => {
-    setCustomCode(code);
-    if (selectedCode === 'custom' || selectedCode === '') {
-      setValue('suggestedCode', code);
-      trigger('suggestedCode');
-    }
-  };
-
-  // Combine all suggestions for unified CodeSuggestions component (like in new donor form)
-  const allSuggestions = codeResult ? [codeResult.primary, ...codeResult.alternatives] : [];
-  const customCodeValidation = customCode ? validateCustomCode(customCode) : null;
-
-  // Smart contact details persistence
-  const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
+  }, [originalDonor, navigate, updateContactDetails]);
 
   if (dataLoading) {
     return (
