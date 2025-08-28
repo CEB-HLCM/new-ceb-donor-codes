@@ -50,7 +50,7 @@ const HomePage: React.FC = () => {
       
       <Grid container spacing={4} justifyContent="center">
         {menuCards.map((card) => (
-          <Grid key={card.title} xs={12} sm={6} md={3}>
+          <Grid item key={card.title} xs={12} sm={6} md={3}>
             <Card 
               sx={{ 
                 width: 240,

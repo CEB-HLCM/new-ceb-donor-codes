@@ -128,7 +128,7 @@ const themeOptions = {
       styleOverrides: {
         root: {
           border: `3px solid ${cebColors.tableBorder}`,
-          borderCollapse: 'collapse',
+          borderCollapse: 'collapse' as const,
         },
       },
     },

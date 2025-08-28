@@ -9,25 +9,27 @@ import { debounce } from 'lodash';
 import type { DonorWithType } from '../types/donor';
 import { soundex, soundexMatch } from '../utils/soundex';
 
-type FuseResultMatch = FuseResult<any>['matches'];
-type FuseOptions = Fuse.IFuseOptions<any>;
+import type { IFuseOptions, FuseResult as FuseResultType } from 'fuse.js';
 
-export const SearchType = {
-  EXACT: 'exact',
-  PARTIAL: 'partial',
-  FUZZY: 'fuzzy',
-  SOUNDEX: 'soundex'
-} as const
+type FuseResultMatch = FuseResultType<any>['matches'];
+type FuseOptions = IFuseOptions<any>;
 
-export const SearchField = {
-  NAME: 'NAME',
-  CEB_CODE: 'CEB CODE',
-  ALL: 'ALL'
-} as const
+export enum SearchType {
+  EXACT = 'exact',
+  PARTIAL = 'partial',
+  FUZZY = 'fuzzy',
+  SOUNDEX = 'soundex'
+}
+
+export enum SearchField {
+  NAME = 'NAME',
+  CEB_CODE = 'CEB CODE',
+  ALL = 'ALL'
+}
 
 export interface SearchOptions {
-  searchType: typeof SearchType[keyof typeof SearchType];
-  searchField: typeof SearchField[keyof typeof SearchField];
+  searchType: SearchType;
+  searchField: SearchField;
   fuzzyThreshold?: number; // 0.0 (exact) to 1.0 (very fuzzy)
   includeScore?: boolean;
   includeMatches?: boolean;
@@ -62,7 +64,7 @@ class SearchService {
   private maxHistorySize = 10;
 
   // Fuse.js configuration for different search scenarios
-  private getFuseOptions(searchField: typeof SearchField[keyof typeof SearchField], threshold: number = 0.3): FuseOptions {
+  private getFuseOptions(searchField: SearchField, threshold: number = 0.3): FuseOptions {
     const keys = searchField === SearchField.ALL 
       ? ['NAME', 'CEB CODE', 'contributorTypeInfo.NAME']
       : [searchField];
