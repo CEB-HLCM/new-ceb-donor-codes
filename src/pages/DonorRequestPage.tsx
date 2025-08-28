@@ -35,12 +35,14 @@ import {
 import { useDataContext } from '../context/DataContext';
 import { useCodeGeneration } from '../hooks/useCodeGeneration';
 import { useContactPersistence } from '../hooks/useContactPersistence';
+import { useBasket } from '../hooks/useBasket';
 import CodePreview from '../components/form/CodePreview';
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
 
 import { donorRequestSchema } from '../schemas/donorRequestSchema';
 import type { DonorRequestFormData } from '../schemas/donorRequestSchema';
+import type { DonorRequest } from '../types/request';
 import { z } from 'zod';
 
 const steps = [
@@ -100,6 +102,9 @@ const DonorRequestPage: React.FC = () => {
 
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
+  
+  // Basket management
+  const { addRequest } = useBasket();
 
   // Simple draft management without complex hooks to prevent infinite loops
   const [hasDraft, setHasDraft] = useState(false);
@@ -123,6 +128,12 @@ const DonorRequestPage: React.FC = () => {
       setValue('contactEmail', contactDetails.contactEmail);
     }
   }, [contactLoaded, contactDetails, setValue]);
+
+  // Save contact details when they change and are valid
+  const handleContactUpdate = useCallback((field: 'contactName' | 'contactEmail', value: string) => {
+    setValue(field, value);
+    updateContactDetails({ [field]: value });
+  }, [setValue, updateContactDetails]);
 
   // Simple manual save to localStorage - no complex hooks
   const handleSaveDraft = useCallback(() => {
@@ -255,12 +266,33 @@ const DonorRequestPage: React.FC = () => {
         contactEmail: data.contactEmail
       });
       
-      // TODO: Implement EmailJS submission
+      // Create request object for basket
+      const request: DonorRequest = {
+        id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        action: 'new',
+        entityName: data.entityName,
+        suggestedCode: data.suggestedCode,
+        customCode: data.customCode || undefined,
+        contributorType: data.contributorType,
+        justification: data.justification,
+        contactEmail: data.contactEmail,
+        contactName: data.contactName,
+        priority: data.priority,
+        additionalNotes: data.additionalNotes || undefined,
+        createdAt: new Date(),
+        status: 'draft'
+      };
+      
+      // Add to basket
+      addRequest(request);
+      
+      // Clear draft and form
       clearDraft();
-      alert('Request submitted successfully! Contact details saved for future forms.');
+      
+      alert('Request added to basket successfully! You can review and submit multiple requests from the Request Management page.');
     } catch (error) {
       console.error('Submission error:', error);
-      alert('Failed to submit request. Please try again.');
+      alert('Failed to add request to basket. Please try again.');
     }
   };
 

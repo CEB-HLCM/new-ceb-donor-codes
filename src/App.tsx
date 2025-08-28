@@ -9,10 +9,12 @@ import DonorRemovePage from './pages/DonorRemovePage';
 import DonorsListPage from './pages/DonorsListPage';
 import RequestsListPage from './pages/RequestsListPage';
 import HelpPage from './pages/HelpPage';
+import { useBasketStats } from './hooks/useBasket';
 
 function App() {
-  // TODO: These will be managed by state management in later phases
-  const requestCount = 0;
+  // Get real-time basket stats for header badge
+  const basketStats = useBasketStats();
+  const requestCount = basketStats.total;
   const isAuthenticated = false;
 
   return (

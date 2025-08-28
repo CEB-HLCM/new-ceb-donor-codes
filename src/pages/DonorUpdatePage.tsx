@@ -37,6 +37,7 @@ import {
 import { useDataContext } from '../context/DataContext';
 import { useCodeGeneration } from '../hooks/useCodeGeneration';
 import { useContactPersistence } from '../hooks/useContactPersistence';
+import { useBasket } from '../hooks/useBasket';
 
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
@@ -217,6 +218,9 @@ const DonorUpdatePage: React.FC = () => {
 
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
+  
+  // Basket management
+  const { addRequest } = useBasket();
 
   // Auto-fill contact details from storage when loaded
   useEffect(() => {
@@ -225,6 +229,12 @@ const DonorUpdatePage: React.FC = () => {
       setValue('contactEmail', contactDetails.contactEmail);
     }
   }, [contactLoaded, contactDetails, setValue]);
+
+  // Save contact details when they change and are valid
+  const handleContactUpdate = useCallback((field: 'contactName' | 'contactEmail', value: string) => {
+    setValue(field, value);
+    updateContactDetails({ [field]: value });
+  }, [setValue, updateContactDetails]);
 
   // Form submission (moved after hook declaration to access updateContactDetails)
   const onSubmit = useCallback((data: DonorRequestFormData) => {
@@ -266,13 +276,14 @@ const DonorUpdatePage: React.FC = () => {
       contactEmail: data.contactEmail
     });
 
-    // TODO: Add to basket (Phase 5)
-    console.log('Update request created:', updateRequest);
+    // Add to basket
+    addRequest(updateRequest);
+    console.log('Update request added to basket:', updateRequest);
     
-    // For now, show success and navigate back
-    alert('Update request created successfully! Contact details saved for future forms.');
-    navigate('/donors');
-  }, [originalDonor, navigate, updateContactDetails]);
+    // Show success message
+    alert('Update request added to basket successfully! You can review and submit multiple requests from the Request Management page.');
+    navigate('/requests-list');
+  }, [originalDonor, navigate, updateContactDetails, addRequest]);
 
   if (dataLoading) {
     return (

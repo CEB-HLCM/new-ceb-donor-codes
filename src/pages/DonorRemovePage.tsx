@@ -34,6 +34,7 @@ import {
 
 import { useDataContext } from '../context/DataContext';
 import { useContactPersistence } from '../hooks/useContactPersistence';
+import { useBasket } from '../hooks/useBasket';
 import OriginalDonorCard from '../components/form/OriginalDonorCard';
 import RemovalJustification from '../components/form/RemovalJustification';
 
@@ -119,6 +120,9 @@ const DonorRemovePage: React.FC = () => {
 
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
+  
+  // Basket management
+  const { addRequest } = useBasket();
 
   // Auto-fill contact details from storage when loaded
   useEffect(() => {
@@ -127,6 +131,12 @@ const DonorRemovePage: React.FC = () => {
       setValue('contactEmail', contactDetails.contactEmail);
     }
   }, [contactLoaded, contactDetails, setValue]);
+
+  // Save contact details when they change and are valid
+  const handleContactUpdate = useCallback((field: 'contactName' | 'contactEmail', value: string) => {
+    setValue(field, value);
+    updateContactDetails({ [field]: value });
+  }, [setValue, updateContactDetails]);
 
   // Handle step validation
   const isStepValid = useCallback(async (step: number): Promise<boolean> => {
@@ -195,13 +205,14 @@ const DonorRemovePage: React.FC = () => {
       contactEmail: data.contactEmail
     });
 
-    // TODO: Add to basket (Phase 5)
-    console.log('Removal request created:', removalRequest);
+    // Add to basket
+    addRequest(removalRequest);
+    console.log('Removal request added to basket:', removalRequest);
     
-    // For now, show success and navigate back
-    alert('Removal request created successfully! Contact details saved for future forms.');
-    navigate('/donors');
-  }, [originalDonor, navigate, updateContactDetails]);
+    // Show success message
+    alert('Removal request added to basket successfully! You can review and submit multiple requests from the Request Management page.');
+    navigate('/requests-list');
+  }, [originalDonor, navigate, updateContactDetails, addRequest]);
 
   if (dataLoading) {
     return (
