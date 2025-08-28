@@ -1,69 +1,196 @@
-# React + TypeScript + Vite
+# CEB Donor Codes React Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React TypeScript application for managing donor entity codes for UN organizations with enhanced search, code generation, and validation functionality.
 
-Currently, two official plugins are available:
+## 🎯 Project Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This is a complete rebuild of the existing CEB Donor Codes application using modern React, TypeScript, and Vite. The application provides an intuitive interface for searching existing donor codes and submitting requests for new, updated, or removed donor codes to the CEB FS team.
 
-## Expanding the ESLint configuration
+**Live Demo**: [Original App](https://ceb-donor-codes.netlify.app/)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✅ Current Implementation Status
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Completed Phases (Phases 1-4B)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- ✅ **Phase 1**: Styling & Branding Setup - Visual parity with original app
+- ✅ **Phase 2**: Dynamic Data Loading Service - Real-time CSV fetching from GitHub
+- ✅ **Phase 3**: Enhanced Search Functionality - Multiple search algorithms with professional UX
+- ✅ **Phase 4**: Donor Request Form & Code Generation - Intelligent code generation with validation
+- ✅ **Phase 4B**: Update/Remove Request Forms - Complete donor lifecycle management
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 🚀 Next Phase: Phase 5 - Request Basket & Management
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 19+ with TypeScript
+- **Build Tool**: Vite (fast, modern build system)
+- **UI Framework**: Material-UI (MUI) v7
+- **Form Management**: React Hook Form with Zod validation
+- **Search**: Fuse.js for fuzzy search + custom algorithms
+- **Routing**: React Router DOM v7
+- **Email Service**: EmailJS for submission workflow
+- **Utilities**: Lodash, UUID, Soundex
+
+## 🔍 Key Features
+
+### Enhanced Search Capabilities
+- **Multiple Search Types**: Exact, partial, fuzzy, and Soundex "sounds like" matching
+- **Professional UX**: Dual approach with browse (DonorsListPage) and advanced search (SearchPage)
+- **Performance**: Sub-50ms search response with debouncing
+- **Advanced Filtering**: By contributor types and government/non-government status
+
+### Intelligent Code Generation
+- **4 Generation Algorithms**: Initials, abbreviations, hybrid, and fallback methods
+- **Real-time Validation**: Against 3,527+ existing donor codes
+- **Smart Suggestions**: Multiple code options with confidence scoring
+- **Professional Wizard**: 4-step process with validation at each stage
+
+### Complete Request Management
+- **New Donor Requests**: Full workflow with intelligent code generation
+- **Update Requests**: Modify existing donor information with change tracking
+- **Remove Requests**: Proper removal workflow with justification requirements
+- **Form Persistence**: Manual save/load functionality for draft requests
+
+## 📊 Data Sources
+
+The application dynamically fetches data from the CEB public repository:
+
+- **Donors**: https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main/DONORS.csv
+- **Contributor Types**: https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main/CONTRIBUTOR_TYPES.csv
+
+Data is loaded fresh on each session to ensure up-to-date information.
+
+## 🏗️ Project Structure
+
+```
+src/
+├── components/           # Reusable UI components
+│   ├── basket/          # Request basket functionality
+│   ├── form/            # Form-related components
+│   ├── layout/          # Header, sidebar, layout components
+│   └── search/          # Search and filtering components
+├── context/             # React context providers
+├── hooks/               # Custom React hooks
+├── pages/               # Main page components
+├── schemas/             # Zod validation schemas
+├── services/            # Business logic and API services
+├── types/               # TypeScript type definitions
+├── utils/               # Utility functions and helpers
+└── theme/               # Material-UI theme configuration
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd new-ceb-donor-codes
 ```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open [http://localhost:5173](http://localhost:5173) in your browser
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## 🔧 Configuration
+
+### EmailJS Integration
+The application uses EmailJS for submitting requests to the CEB team. Configuration is in `src/services/emailService.ts`:
+
+```typescript
+const EMAIL_CONFIG = {
+  serviceId: 'add_new_duty_station',
+  templateId: 'template_okd4w8x',
+  userId: 'user_ANTAfHrBooXuOmxNxi1Yn'
+};
+```
+
+### Environment Variables (Optional)
+For enhanced security, you can move EmailJS configuration to environment variables:
+
+```env
+VITE_EMAILJS_SERVICE_ID=add_new_duty_station
+VITE_EMAILJS_TEMPLATE_ID=template_okd4w8x
+VITE_EMAILJS_USER_ID=user_ANTAfHrBooXuOmxNxi1Yn
+```
+
+## 📋 Development Roadmap
+
+### Upcoming Phases:
+- **Phase 5**: Request Basket & Management with drag-and-drop functionality
+- **Phase 6**: Enhanced EmailJS Integration with bulk notifications
+- **Phase 7**: State Management & Performance Optimization
+- **Phase 8**: Testing & Quality Assurance
+- **Phase 9**: Deployment & Production Setup
+- **Phase 10**: Advanced Features & Enhancements
+
+See `DEVELOPMENT_ROADMAP.md` for detailed implementation plans.
+
+## 🎨 Design System
+
+The application maintains visual consistency with the original CEB Donor Codes app:
+- **Primary Blue**: #008fd5
+- **Table Headers**: #96C8DA
+- **Material-UI Theme**: Custom theme matching original branding
+- **Responsive Design**: Mobile-first approach with breakpoint optimization
+
+## 🧪 Code Quality
+
+- **TypeScript**: Full type safety throughout the application
+- **ESLint**: Code quality and consistency enforcement
+- **Zero Console Errors**: Clean development environment
+- **Material-UI Best Practices**: Proper theming and component usage
+- **React Hook Form**: Controlled component patterns with validation
+
+## 📝 Critical Development Notes
+
+1. **TypeScript verbatimModuleSyntax**: Use `import type` for interfaces and `import` for values
+2. **HTML Nesting Prevention**: Follow Material-UI component hierarchy guidelines
+3. **Performance**: Debounced search, optimized rendering, efficient data structures
+4. **Data Integrity**: Fresh data loading, no persistent caching of donor codes
+5. **Form Stability**: Manual save/load system, no auto-save infinite loops
+
+## 🤝 Contributing
+
+This project follows strict development standards:
+- All components must be TypeScript-typed
+- Zero tolerance for console errors/warnings
+- Material-UI design system compliance
+- Comprehensive error handling
+- Professional UX patterns
+
+## 📄 License
+
+This project is developed for the UN CEB (United Nations System Chief Executives Board) for internal use in managing donor codes across UN organizations.
+
+## 🔗 Related Documentation
+
+- `DEVELOPMENT_ROADMAP.md` - Complete development phases and tasks
+- `DEVELOPMENT_STATUS.md` - Detailed implementation status and achievements
+- `PROJECT_SPECIFICATIONS.md` - Technical requirements and architecture
+- `HTML_NESTING_PREVENTION_GUIDE.md` - HTML structure best practices
+
+---
+
+**Status**: ✅ Production-ready for Phases 1-4B | 🚧 Phase 5 in development
+**Last Updated**: January 2025
