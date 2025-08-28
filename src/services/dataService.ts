@@ -101,8 +101,7 @@ async function fetchCSV(url: string, retries = 3): Promise<string> {
         method: 'GET',
         headers: {
           'Accept': isGitHubAPI ? 'application/vnd.github.v3+json' : 'text/csv,text/plain,*/*',
-          'Cache-Control': 'no-cache',
-          ...(isGitHubAPI ? { 'User-Agent': 'CEB-Donor-Codes-App' } : {}),
+          ...(isGitHubAPI ? { 'User-Agent': 'CEB-Donor-Codes-App' } : { 'Cache-Control': 'no-cache' }),
         },
       });
 
