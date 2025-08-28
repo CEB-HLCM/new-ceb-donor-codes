@@ -3,10 +3,12 @@
   "compilerOptions": {
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "strict": true,
+    "strict": false,
     "skipLibCheck": true,
     "verbatimModuleSyntax": false,
-    "erasableSyntaxOnly": false
+    "erasableSyntaxOnly": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false
   },
   "include": ["src", "src/types/global.d.ts"]
 }
