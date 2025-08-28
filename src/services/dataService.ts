@@ -104,11 +104,11 @@ function parseCSVLine(line: string): string[] {
 async function fetchCSV(url: string, retries = 3): Promise<string> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      // Minimal headers for CORS proxy compatibility
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Accept': 'text/csv,text/plain,*/*',
-          'Cache-Control': 'no-cache',
         },
       });
 
