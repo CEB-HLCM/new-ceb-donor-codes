@@ -3,9 +3,14 @@
 import type { Donor, ContributorType, DonorWithType, ApiResponse } from '../types/donor';
 import { sampleDonors, sampleContributorTypes } from '../data/sampleData';
 
-// CSV data URLs - Using Vite proxy to avoid CORS issues in development
-const DONORS_CSV_URL = '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/DONORS.csv';
-const CONTRIBUTOR_TYPES_CSV_URL = '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/CONTRIBUTOR_TYPES.csv';
+// CSV data URLs - Direct GitHub raw URLs for production, proxy for development
+const isDevelopment = import.meta.env.DEV;
+const BASE_URL = isDevelopment 
+  ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main'
+  : 'https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main';
+
+const DONORS_CSV_URL = `${BASE_URL}/DONORS.csv`;
+const CONTRIBUTOR_TYPES_CSV_URL = `${BASE_URL}/CONTRIBUTOR_TYPES.csv`;
 
 /**
  * Lightweight CSV parser - converts CSV text to array of objects

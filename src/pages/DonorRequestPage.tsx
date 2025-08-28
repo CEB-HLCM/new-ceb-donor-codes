@@ -75,11 +75,11 @@ const DonorRequestPage: React.FC = () => {
       suggestedCode: '',
       customCode: '',
       contributorType: '',
-      donorType: '',
+      donorType: '0' as const,
       justification: '',
       contactEmail: '',
       contactName: '',
-      priority: 'normal',
+      priority: 'normal' as const,
       additionalNotes: ''
     },
     mode: 'onChange'
@@ -166,7 +166,7 @@ const DonorRequestPage: React.FC = () => {
         const draft = JSON.parse(savedDraft);
         Object.entries(draft).forEach(([key, value]) => {
           if (value) {
-            setValue(key as keyof DonorRequestFormData, value);
+            setValue(key as keyof DonorRequestFormData, value as any);
           }
         });
         setHasDraft(true);
@@ -357,11 +357,17 @@ const DonorRequestPage: React.FC = () => {
                 <FormControl fullWidth error={!!errors.contributorType} sx={{ mb: 3 }}>
                   <InputLabel>Contributor Type</InputLabel>
                   <Select {...field} label="Contributor Type">
-                    {contributorTypes.map((type) => (
-                      <MenuItem key={type.TYPE} value={type.TYPE}>
-                        {type.TYPE} - {type.NAME}
+                    {contributorTypes && contributorTypes.length > 0 ? (
+                      contributorTypes.map((type) => (
+                        <MenuItem key={type.TYPE} value={type.TYPE}>
+                          {type.TYPE} - {type.NAME}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled value="">
+                        Loading contributor types...
                       </MenuItem>
-                    ))}
+                    )}
                   </Select>
                   {errors.contributorType && (
                     <FormHelperText>{errors.contributorType.message}</FormHelperText>

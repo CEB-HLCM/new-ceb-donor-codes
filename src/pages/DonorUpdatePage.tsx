@@ -85,7 +85,7 @@ const DonorUpdatePage: React.FC = () => {
         
         // Pre-fill form with existing data
         setValue('entityName', donor.NAME);
-        setValue('donorType', donor.TYPE);
+        setValue('donorType', donor.TYPE as '0' | '1');
         setValue('contributorType', donor['CONTRIBUTOR TYPE']);
         setValue('suggestedCode', donor['CEB CODE']);
         setSelectedCode(donor['CEB CODE']);
@@ -113,11 +113,11 @@ const DonorUpdatePage: React.FC = () => {
       suggestedCode: '',
       customCode: '',
       contributorType: '',
-      donorType: '',
+      donorType: '0' as const,
       justification: '',
       contactEmail: '',
       contactName: '',
-      priority: 'normal',
+      priority: 'normal' as const,
       additionalNotes: ''
     },
     mode: 'onChange'

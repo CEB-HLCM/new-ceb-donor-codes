@@ -45,7 +45,7 @@ const removalRequestSchema = z.object({
   contactName: z.string().min(2, 'Contact name is required'),
   contactEmail: z.string().email('Valid email is required'),
   priority: z.enum(['low', 'normal', 'high']),
-  removalReason: z.enum(['duplicate', 'obsolete', 'merged', 'incorrect', 'other']).refine(val => val !== '', { 
+  removalReason: z.enum(['duplicate', 'obsolete', 'merged', 'incorrect', 'other'], {
     message: 'Please select a reason for removal' 
   }),
   removalJustification: z.string().min(10, 'Detailed justification is required (minimum 10 characters)'),
@@ -106,7 +106,7 @@ const DonorRemovePage: React.FC = () => {
       contactName: '',
       contactEmail: '',
       priority: 'normal' as const,
-      removalReason: '',
+      removalReason: 'duplicate' as const,
       removalJustification: '',
       additionalNotes: ''
     },

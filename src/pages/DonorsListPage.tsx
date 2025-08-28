@@ -76,9 +76,11 @@ const DonorsListPage: React.FC = () => {
       // Use enhanced search results
       return results.map(result => result.item);
     } else if (query.trim()) {
-      // Fallback to basic regex search for backward compatibility
+      // Fallback to basic regex search for backward compatibility with safety checks
       const regex = new RegExp(query.trim(), 'gi');
       return donorsWithTypes.filter(donor => {
+        // Safety checks for undefined data
+        if (!donor || !donor.NAME || !donor['CEB CODE']) return false;
         return donor.NAME.match(regex) || donor['CEB CODE'].match(regex);
       });
     } else {
@@ -87,9 +89,14 @@ const DonorsListPage: React.FC = () => {
     }
   }, [query, useAdvancedSearch, results, donorsWithTypes]);
 
-  // Sort and paginate data
+  // Sort and paginate data with safety checks
   const sortedData = React.useMemo(() => {
-    return [...displayData].sort((a, b) => a.NAME.localeCompare(b.NAME));
+    return [...displayData].sort((a, b) => {
+      // Safety checks for undefined data
+      const nameA = a?.NAME || '';
+      const nameB = b?.NAME || '';
+      return nameA.localeCompare(nameB);
+    });
   }, [displayData]);
 
   const paginatedDonors = React.useMemo(() => {
@@ -330,69 +337,82 @@ const DonorsListPage: React.FC = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedDonors.map((donor, index) => (
-                <TableRow key={`${donor['CEB CODE']}-${index}`} hover>
-                  <TableCell>{donor.NAME}</TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
-                      {donor['CEB CODE']}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={getTypeDisplayName(donor)}
-                      color={getTypeColor(donor)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={donor.contributorTypeInfo?.NAME || 'Unknown'}
-                      color="default"
-                      size="small"
-                      variant="outlined"
-                      title={`${donor['CONTRIBUTOR TYPE']}: ${donor.contributorTypeInfo?.DEFINITION || 'No definition available'}`}
-                      sx={{ 
-                        maxWidth: '200px',
-                        '& .MuiChip-label': {
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button
-                        component={Link}
-                        to={`/donor-update/${encodeURIComponent(donor['CEB CODE'])}`}
-                        variant="contained"
+              paginatedDonors.map((donor, index) => {
+                // Safety check for undefined donor data
+                if (!donor || !donor.NAME || !donor['CEB CODE']) {
+                  return (
+                    <TableRow key={`error-${index}`}>
+                      <TableCell colSpan={5} sx={{ textAlign: 'center', color: 'error.main' }}>
+                        Invalid donor data
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+                
+                return (
+                  <TableRow key={`${donor['CEB CODE']}-${index}`} hover>
+                    <TableCell>{donor.NAME}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+                        {donor['CEB CODE']}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={getTypeDisplayName(donor)}
+                        color={getTypeColor(donor)}
                         size="small"
-                        sx={{ 
-                          backgroundColor: 'warning.main',
-                          color: 'white',
-                          '&:hover': { backgroundColor: 'warning.dark' }
-                        }}
-                      >
-                        Update
-                      </Button>
-                      <Button
-                        component={Link}
-                        to={`/donor-remove/${encodeURIComponent(donor['CEB CODE'])}`}
-                        variant="contained"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={donor.contributorTypeInfo?.NAME || 'Unknown'}
+                        color="default"
                         size="small"
-                        color="error"
+                        variant="outlined"
+                        title={`${donor['CONTRIBUTOR TYPE'] || 'Unknown'}: ${donor.contributorTypeInfo?.DEFINITION || 'No definition available'}`}
                         sx={{ 
-                          '&:hover': { backgroundColor: 'error.dark' }
+                          maxWidth: '200px',
+                          '& .MuiChip-label': {
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }
                         }}
-                      >
-                        Remove
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          component={Link}
+                          to={`/donor-update/${encodeURIComponent(donor['CEB CODE'])}`}
+                          variant="contained"
+                          size="small"
+                          sx={{ 
+                            backgroundColor: 'warning.main',
+                            color: 'white',
+                            '&:hover': { backgroundColor: 'warning.dark' }
+                          }}
+                        >
+                          Update
+                        </Button>
+                        <Button
+                          component={Link}
+                          to={`/donor-remove/${encodeURIComponent(donor['CEB CODE'])}`}
+                          variant="contained"
+                          size="small"
+                          color="error"
+                          sx={{ 
+                            '&:hover': { backgroundColor: 'error.dark' }
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

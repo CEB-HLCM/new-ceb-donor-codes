@@ -40,7 +40,7 @@ export function useFormPersistence<T>(
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [saveTimeout, setSaveTimeout] = useState<number | null>(null);
 
   // Load data on mount
   useEffect(() => {
@@ -94,7 +94,7 @@ export function useFormPersistence<T>(
     }
 
     // Set new timeout for debounced save
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       persistToStorage(newData);
       setSaveTimeout(null);
     }, debounceDelay);
