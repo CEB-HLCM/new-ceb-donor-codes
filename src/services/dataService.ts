@@ -13,11 +13,11 @@ const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Co
 // For development: Vite proxy | For production: CORS proxy to GitHub raw URLs
 const DONORS_CSV_URL = isDevelopment
   ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/DONORS.csv'
-  : CORS_PROXY + encodeURIComponent(`${GITHUB_RAW_BASE}/DONORS.csv`);
+  : CORS_PROXY + `${GITHUB_RAW_BASE}/DONORS.csv`;
 
 const CONTRIBUTOR_TYPES_CSV_URL = isDevelopment
   ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/CONTRIBUTOR_TYPES.csv'
-  : CORS_PROXY + encodeURIComponent(`${GITHUB_RAW_BASE}/CONTRIBUTOR_TYPES.csv`);
+  : CORS_PROXY + `${GITHUB_RAW_BASE}/CONTRIBUTOR_TYPES.csv`;
 
 /**
  * Lightweight CSV parser - converts CSV text to array of objects
