@@ -3,21 +3,12 @@
 import type { Donor, ContributorType, DonorWithType, ApiResponse } from '../types/donor';
 import { sampleDonors, sampleContributorTypes } from '../data/sampleData';
 
-// CSV data URLs - Handle CORS issues in production using reliable CORS proxy
-const isDevelopment = import.meta.env.DEV;
-
-// CORS proxy for production (AllOrigins - free, reliable, no rate limits)
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+// CSV data URLs - Direct GitHub raw URLs (no CORS issues as proven by testing)
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main';
 
-// For development: Vite proxy | For production: CORS proxy to GitHub raw URLs
-const DONORS_CSV_URL = isDevelopment
-  ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/DONORS.csv'
-  : CORS_PROXY + `${GITHUB_RAW_BASE}/DONORS.csv`;
-
-const CONTRIBUTOR_TYPES_CSV_URL = isDevelopment
-  ? '/api/csv/CEB-HLCM/FS-Public-Codes/refs/heads/main/CONTRIBUTOR_TYPES.csv'
-  : CORS_PROXY + `${GITHUB_RAW_BASE}/CONTRIBUTOR_TYPES.csv`;
+// Direct URLs for both development and production - simple and straightforward
+const DONORS_CSV_URL = `${GITHUB_RAW_BASE}/DONORS.csv`;
+const CONTRIBUTOR_TYPES_CSV_URL = `${GITHUB_RAW_BASE}/CONTRIBUTOR_TYPES.csv`;
 
 /**
  * Lightweight CSV parser - converts CSV text to array of objects
@@ -96,15 +87,15 @@ function parseCSVLine(line: string): string[] {
 
 /**
  * Fetch CSV data from a URL with error handling and retry logic
- * Handles both direct CSV URLs (development) and GitHub API responses (production)
- * @param url - CSV file URL or GitHub API URL
+ * Uses direct GitHub raw URLs for both development and production
+ * @param url - Direct CSV file URL
  * @param retries - Number of retry attempts
  * @returns Promise with CSV text content
  */
 async function fetchCSV(url: string, retries = 3): Promise<string> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Minimal headers for CORS proxy compatibility
+      // Simple fetch with basic headers
       const response = await fetch(url, {
         method: 'GET',
         headers: {
