@@ -53,12 +53,12 @@ This is a complete rebuild of the existing CEB Donor Codes application using mod
 
 ## 📊 Data Sources
 
-The application dynamically fetches data from the CEB public repository:
+The application directly fetches data from the CEB public repository using simple HTTP requests:
 
 - **Donors**: https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main/DONORS.csv
 - **Contributor Types**: https://raw.githubusercontent.com/CEB-HLCM/FS-Public-Codes/refs/heads/main/CONTRIBUTOR_TYPES.csv
 
-Data is loaded fresh on each session to ensure up-to-date information.
+**No CORS proxy required** - GitHub raw URLs work directly in all environments including local development and production deployments. Data is loaded fresh on each session to ensure up-to-date information.
 
 ## 🏗️ Project Structure
 
@@ -167,8 +167,9 @@ The application maintains visual consistency with the original CEB Donor Codes a
 1. **TypeScript verbatimModuleSyntax**: Use `import type` for interfaces and `import` for values
 2. **HTML Nesting Prevention**: Follow Material-UI component hierarchy guidelines
 3. **Performance**: Debounced search, optimized rendering, efficient data structures
-4. **Data Integrity**: Fresh data loading, no persistent caching of donor codes
+4. **Data Integrity**: Direct GitHub CSV fetching, fresh data loading, no persistent caching
 5. **Form Stability**: Manual save/load system, no auto-save infinite loops
+6. **Simplified Architecture**: No proxy configurations or complex CORS workarounds needed
 
 ## 🤝 Contributing
 
