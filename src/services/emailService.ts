@@ -3,11 +3,12 @@
 import emailjs from '@emailjs/browser';
 import type { DonorRequest, RequestSubmission } from '../types/request';
 
-// EmailJS configuration (preserved from original app)
+// EmailJS configuration - Using environment variables for security
 const EMAIL_CONFIG = {
-  serviceId: 'add_new_duty_station',
-  templateId: 'template_okd4w8x', 
-  userId: 'user_ANTAfHrBooXuOmxNxi1Yn'
+  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+  privateKey: import.meta.env.VITE_EMAILJS_PRIVATE_KEY,
+  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID
 };
 
 export interface EmailSubmissionResult {
@@ -28,12 +29,17 @@ export class EmailService {
    */
   async initialize(): Promise<void> {
     try {
-      emailjs.init(EMAIL_CONFIG.userId);
+      // Validate environment variables are loaded
+      if (!EMAIL_CONFIG.publicKey || !EMAIL_CONFIG.serviceId || !EMAIL_CONFIG.templateId) {
+        throw new Error('EmailJS environment variables not properly configured. Check .env.local file.');
+      }
+
+      emailjs.init(EMAIL_CONFIG.publicKey);
       this.initialized = true;
-      console.log('EmailJS initialized successfully');
+      console.log('EmailJS initialized successfully with environment variables');
     } catch (error) {
       console.error('Failed to initialize EmailJS:', error);
-      throw new Error('Email service initialization failed');
+      throw new Error(`Email service initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -100,7 +106,7 @@ export class EmailService {
   }
 
   /**
-   * Format email content for mixed request types
+   * Format email content to match the new template structure
    */
   private formatEmailContent(
     submission: RequestSubmission, 
@@ -108,90 +114,99 @@ export class EmailService {
   ): Record<string, any> {
     const { new: newRequests, update: updateRequests, remove: removeRequests } = groupedRequests;
     
-    // Create formatted sections for each request type
-    const sections = [];
+    // Format requests for human-readable table
+    const requestsTable = this.formatRequestsTable(submission.requests);
     
-    // NEW REQUESTS SECTION
-    if (newRequests.length > 0) {
-      sections.push(`
-=== NEW DONOR CODE REQUESTS (${newRequests.length}) ===
+    // Format JSON snippets for new requests (for database addition)
+    const jsonSnippets = this.formatJsonSnippets(newRequests);
 
-${newRequests.map((req, index) => `
-${index + 1}. Entity: ${req.entityName}
-   Suggested Code: ${req.customCode || req.suggestedCode}
-   Contributor Type: ${req.contributorType}
-   Priority: ${req.priority.toUpperCase()}
-   Justification: ${req.justification}
-   ${req.additionalNotes ? `Additional Notes: ${req.additionalNotes}` : ''}
-`).join('\n')}
-      `);
-    }
-
-    // UPDATE REQUESTS SECTION  
-    if (updateRequests.length > 0) {
-      sections.push(`
-=== DONOR CODE UPDATE REQUESTS (${updateRequests.length}) ===
-
-${updateRequests.map((req, index) => `
-${index + 1}. Original: ${req.originalDonor?.name} (${req.originalDonor?.code})
-   Updated Entity: ${req.entityName}
-   New Code: ${req.customCode || req.suggestedCode}
-   New Contributor Type: ${req.contributorType}
-   Priority: ${req.priority.toUpperCase()}
-   Justification: ${req.justification}
-   ${req.proposedChanges ? this.formatChanges(req.proposedChanges) : ''}
-   ${req.additionalNotes ? `Additional Notes: ${req.additionalNotes}` : ''}
-`).join('\n')}
-      `);
-    }
-
-    // REMOVAL REQUESTS SECTION
-    if (removeRequests.length > 0) {
-      sections.push(`
-=== DONOR CODE REMOVAL REQUESTS (${removeRequests.length}) ===
-
-${removeRequests.map((req, index) => `
-${index + 1}. Entity: ${req.originalDonor?.name || req.entityName}
-   Code to Remove: ${req.originalDonor?.code || req.suggestedCode}
-   Removal Reason: ${req.removalReason?.toUpperCase()}
-   Priority: ${req.priority.toUpperCase()}
-   Justification: ${req.removalJustification || req.justification}
-   ${req.additionalNotes ? `Additional Notes: ${req.additionalNotes}` : ''}
-`).join('\n')}
-      `);
-    }
-
-    // Compile email template variables
+    // Template variables matching your EmailJS template
     return {
-      // Header information
-      submission_id: submission.submissionId,
-      submission_date: submission.submittedAt.toISOString(),
-      contact_name: submission.submittedBy.name,
-      contact_email: submission.submittedBy.email,
+      // Template variables: {{name}} and {{email}}
+      name: submission.submittedBy.name,
+      email: submission.submittedBy.email,
       
-      // Summary counts
-      total_requests: submission.requests.length,
-      new_count: newRequests.length,
-      update_count: updateRequests.length,
-      remove_count: removeRequests.length,
+      // Template variable: {{{requests}}} - human readable table
+      requests: requestsTable,
       
-      // Main content
-      request_details: sections.join('\n\n'),
-      
-      // Additional notes
-      submission_notes: submission.notes || 'No additional notes provided',
-      
-      // Legacy fields for compatibility with existing template
-      entity_name: submission.requests[0]?.entityName || 'Multiple Entities',
-      suggested_code: submission.requests[0]?.suggestedCode || 'Mixed Requests',
-      justification: `Mixed submission with ${submission.requests.length} requests`,
-      contributor_type: 'Mixed Types',
-      priority: this.getHighestPriority(submission.requests),
-      
-      // Metadata
-      submission_type: 'Mixed Request Submission',
-      app_version: 'CEB Donor Codes v2.0 (Phase 5)'
+      // Template variable: {{{json_snippet}}} - JSON for database
+      json_snippet: jsonSnippets
     };
+  }
+
+  /**
+   * Format requests as a human-readable table
+   */
+  private formatRequestsTable(requests: DonorRequest[]): string {
+    const lines = [];
+    
+    lines.push('REQUEST DETAILS:');
+    lines.push('================');
+    lines.push('');
+
+    requests.forEach((req, index) => {
+      lines.push(`${index + 1}. ${req.action.toUpperCase()} REQUEST:`);
+      lines.push(`   Entity Name: ${req.entityName}`);
+      lines.push(`   Code: ${req.customCode || req.suggestedCode}`);
+      lines.push(`   Contributor Type: ${req.contributorType}`);
+      lines.push(`   Priority: ${req.priority.toUpperCase()}`);
+      lines.push(`   Contact: ${req.contactName} (${req.contactEmail})`);
+      lines.push(`   Justification: ${req.justification}`);
+      
+      if (req.originalDonor && (req.action === 'update' || req.action === 'remove')) {
+        lines.push(`   Original Entity: ${req.originalDonor.name}`);
+        lines.push(`   Original Code: ${req.originalDonor.code}`);
+      }
+      
+      if (req.removalReason && req.action === 'remove') {
+        lines.push(`   Removal Reason: ${req.removalReason.toUpperCase()}`);
+      }
+      
+      if (req.additionalNotes) {
+        lines.push(`   Additional Notes: ${req.additionalNotes}`);
+      }
+      
+      lines.push('');
+    });
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Format JSON snippets for new requests (for database addition)
+   */
+  private formatJsonSnippets(newRequests: DonorRequest[]): string {
+    if (newRequests.length === 0) {
+      return 'No new requests requiring JSON database entries.';
+    }
+
+    const lines = [];
+    lines.push('JSON DATABASE ENTRIES FOR NEW REQUESTS:');
+    lines.push('=======================================');
+    lines.push('');
+
+    newRequests.forEach((req, index) => {
+      const jsonObject = {
+        "NAME": req.entityName,
+        "TYPE": this.getTypeFromContributorType(req.contributorType),
+        "CEB CODE": req.customCode || req.suggestedCode,
+        "CONTRIBUTOR TYPE": req.contributorType
+      };
+
+      lines.push(`${index + 1}. ${req.entityName}:`);
+      lines.push(JSON.stringify(jsonObject, null, 2));
+      lines.push('');
+    });
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Map contributor type to TYPE field (0=Non-government, 1=Government)
+   */
+  private getTypeFromContributorType(contributorType: string): string {
+    // C01 = Government, others are typically non-government
+    return contributorType === 'C01' ? '1' : '0';
   }
 
   /**
