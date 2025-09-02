@@ -225,6 +225,30 @@ export class BasketService {
   }
 
   /**
+   * Reorder requests in basket (for drag and drop)
+   */
+  reorderRequests(oldIndex: number, newIndex: number): void {
+    if (oldIndex < 0 || newIndex < 0 || oldIndex >= this.basket.requests.length || newIndex >= this.basket.requests.length) {
+      return; // Invalid indices
+    }
+
+    if (oldIndex === newIndex) {
+      return; // No change needed
+    }
+
+    // Use array move logic (similar to arrayMove from @dnd-kit/sortable)
+    const result = Array.from(this.basket.requests);
+    const [removed] = result.splice(oldIndex, 1);
+    result.splice(newIndex, 0, removed);
+
+    this.basket.requests = result;
+    this.basket.lastModified = new Date();
+    
+    this.saveBasket();
+    this.notifyListeners();
+  }
+
+  /**
    * Prepare submission package
    */
   prepareSubmission(contactInfo: { name: string; email: string }, notes?: string): RequestSubmission {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Box,
@@ -53,6 +54,7 @@ const steps = [
 ];
 
 const DonorRequestPage: React.FC = () => {
+  const navigate = useNavigate();
   const { contributorTypes } = useDataContext();
   const [activeStep, setActiveStep] = useState(0);
   const [selectedCode, setSelectedCode] = useState('');
@@ -290,6 +292,7 @@ const DonorRequestPage: React.FC = () => {
       clearDraft();
       
       alert('Request added to basket successfully! You can review and submit multiple requests from the Request Management page.');
+      navigate('/requests-list');
     } catch (error) {
       console.error('Submission error:', error);
       alert('Failed to add request to basket. Please try again.');

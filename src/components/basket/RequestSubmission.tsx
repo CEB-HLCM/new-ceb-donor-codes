@@ -29,6 +29,7 @@ import {
 import { useBasket } from '../../hooks/useBasket';
 import { useContactPersistence } from '../../hooks/useContactPersistence';
 import { emailService } from '../../services/emailService';
+import RequestValidationSummary from '../form/RequestValidationSummary';
 import type { EmailSubmissionResult } from '../../services/emailService';
 
 interface RequestSubmissionProps {
@@ -48,9 +49,23 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
   const [submissionNotes, setSubmissionNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<EmailSubmissionResult | null>(null);
-  const [step, setStep] = useState<'prepare' | 'submitting' | 'success' | 'error'>('prepare');
+  const [step, setStep] = useState<'prepare' | 'validate' | 'submitting' | 'success' | 'error'>('prepare');
+  const [validationResults, setValidationResults] = useState<any>(null);
+  const [canSubmit, setCanSubmit] = useState(false);
 
   const stats = getStats();
+
+  // Handle validation completion
+  const handleValidationComplete = useCallback((results: any) => {
+    setValidationResults(results);
+    const hasErrors = Object.values(results).some((result: any) => result.summary.errors > 0);
+    setCanSubmit(!hasErrors);
+  }, []);
+
+  // Handle moving to validation step
+  const handleProceedToValidation = () => {
+    setStep('validate');
+  };
 
   // Handle submission
   const handleSubmit = useCallback(async () => {
@@ -124,14 +139,23 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
       setStep('prepare');
       setSubmissionResult(null);
       setSubmissionNotes('');
+      setValidationResults(null);
+      setCanSubmit(false);
     } else if (step === 'error') {
       // Allow closing after error
       onClose();
       setStep('prepare');
       setSubmissionResult(null);
+      setValidationResults(null);
+      setCanSubmit(false);
     } else {
       // Normal close
       onClose();
+      if (step === 'validate') {
+        setStep('prepare');
+        setValidationResults(null);
+        setCanSubmit(false);
+      }
     }
   }, [isSubmitting, step, onClose]);
 
@@ -168,6 +192,7 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
       <DialogTitle id="submission-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <EmailIcon />
         {step === 'prepare' && 'Submit Requests'}
+        {step === 'validate' && 'Validate Requests'}
         {step === 'submitting' && 'Submitting Requests...'}
         {step === 'success' && 'Submission Successful'}
         {step === 'error' && 'Submission Failed'}
@@ -265,6 +290,22 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
               />
             </Box>
           </Stack>
+        )}
+
+        {step === 'validate' && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Request Validation
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Please review the validation results below. All errors must be resolved before submission.
+            </Typography>
+            
+            <RequestValidationSummary
+              requests={basket.requests}
+              onValidationComplete={handleValidationComplete}
+            />
+          </Box>
         )}
 
         {step === 'submitting' && (
@@ -370,11 +411,27 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
             </Button>
             <Button
               variant="contained"
-              onClick={handleSubmit}
-              disabled={!contactDetails.contactName || !contactDetails.contactEmail || isSubmitting}
-              startIcon={<SendIcon />}
+              onClick={handleProceedToValidation}
+              disabled={!contactDetails.contactName || !contactDetails.contactEmail}
             >
-              Submit {stats.total} Request{stats.total !== 1 ? 's' : ''}
+              Validate & Submit
+            </Button>
+          </>
+        )}
+
+        {step === 'validate' && (
+          <>
+            <Button onClick={() => setStep('prepare')}>
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting}
+              startIcon={<SendIcon />}
+              color={canSubmit ? 'success' : 'primary'}
+            >
+              {canSubmit ? `Submit ${stats.total} Request${stats.total !== 1 ? 's' : ''}` : 'Fix Errors First'}
             </Button>
           </>
         )}

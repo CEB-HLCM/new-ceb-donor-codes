@@ -23,6 +23,9 @@ export interface UseBasketReturn {
   bulkUpdateStatus: (requestIds: string[], status: DonorRequest['status']) => void;
   bulkRemoveRequests: (requestIds: string[]) => void;
   
+  // Reordering (drag and drop)
+  reorderRequests: (oldIndex: number, newIndex: number) => void;
+  
   // Utilities
   hasRequest: (entityName: string, action: DonorRequest['action']) => boolean;
   getRequest: (requestId: string) => DonorRequest | undefined;
@@ -120,6 +123,16 @@ export function useBasket(): UseBasketReturn {
     }
   }, []);
 
+  // Reordering for drag and drop
+  const reorderRequests = useCallback((oldIndex: number, newIndex: number) => {
+    setIsLoading(true);
+    try {
+      basketService.reorderRequests(oldIndex, newIndex);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Utility functions
   const hasRequest = useCallback((entityName: string, action: DonorRequest['action']) => {
     return basket.requests.some(req => req.entityName === entityName && req.action === action);
@@ -175,6 +188,9 @@ export function useBasket(): UseBasketReturn {
     // Bulk operations
     bulkUpdateStatus,
     bulkRemoveRequests,
+    
+    // Reordering
+    reorderRequests,
     
     // Utilities
     hasRequest,

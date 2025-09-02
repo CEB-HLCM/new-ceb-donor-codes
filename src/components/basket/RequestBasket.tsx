@@ -1,4 +1,4 @@
-// Enhanced request basket component with modern UX
+// Enhanced request basket component with modern UX and drag-and-drop
 
 import React, { useState, useMemo } from 'react';
 import {
@@ -20,7 +20,8 @@ import {
   Menu,
   MenuItem,
   Stack,
-  Badge
+  Badge,
+  Tooltip
 } from '@mui/material';
 import {
   MoreVert as MoreIcon,
@@ -32,9 +33,37 @@ import {
   Add as AddIcon,
   Update as UpdateIcon,
   Remove as RemoveIcon,
-  Email as EmailIcon
+  Email as EmailIcon,
+  DragIndicator as DragIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+
+// Drag and drop imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects
+} from '@dnd-kit/core';
+import type { 
+  DragEndEvent,
+  DragStartEvent,
+  DropAnimation
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import {
+  CSS
+} from '@dnd-kit/utilities';
 
 import { useBasket } from '../../hooks/useBasket';
 import RequestSubmission from './RequestSubmission';
@@ -45,6 +74,138 @@ interface RequestBasketProps {
   compact?: boolean;
   onRequestEdit?: (request: DonorRequest) => void;
 }
+
+// Sortable request row component
+interface SortableRequestRowProps {
+  request: DonorRequest;
+  isSelected: boolean;
+  onSelect: (requestId: string) => void;
+  onMenuOpen: (event: React.MouseEvent<HTMLElement>, request: DonorRequest) => void;
+  getActionIcon: (action: string) => React.ReactNode;
+  getActionColor: (action: string) => string;
+  getStatusColor: (status: string) => string;
+  getPriorityColor: (priority: string) => string;
+  compact?: boolean;
+  isDragging?: boolean;
+}
+
+const SortableRequestRow: React.FC<SortableRequestRowProps> = ({
+  request,
+  isSelected,
+  onSelect,
+  onMenuOpen,
+  getActionIcon,
+  getActionColor,
+  getStatusColor,
+  getPriorityColor,
+  compact = false,
+  isDragging = false
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging
+  } = useSortable({ id: request.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      hover
+      selected={isSelected}
+      sx={{
+        cursor: isDragging ? 'grabbing' : 'grab',
+        '& .drag-handle': {
+          opacity: 0.3,
+          transition: 'opacity 0.2s',
+        },
+        '&:hover .drag-handle': {
+          opacity: 1,
+        }
+      }}
+    >
+      <TableCell padding="none" sx={{ width: 20 }}>
+        <IconButton
+          className="drag-handle"
+          size="small"
+          {...attributes}
+          {...listeners}
+          sx={{ cursor: 'grab', '&:active': { cursor: 'grabbing' } }}
+        >
+          <DragIcon fontSize="small" />
+        </IconButton>
+      </TableCell>
+      <TableCell padding="checkbox">
+        <Checkbox
+          checked={isSelected}
+          onChange={() => onSelect(request.id)}
+        />
+      </TableCell>
+      <TableCell>
+        <Chip
+          icon={getActionIcon(request.action)}
+          label={request.action}
+          size="small"
+          color={getActionColor(request.action) as any}
+          variant="outlined"
+        />
+      </TableCell>
+      <TableCell>
+        <Typography variant="subtitle2">
+          {request.entityName}
+        </Typography>
+        {request.justification && !compact && (
+          <Typography variant="caption" color="text.secondary">
+            {request.justification.substring(0, 50)}...
+          </Typography>
+        )}
+      </TableCell>
+      <TableCell>
+        <Typography fontFamily="monospace" fontWeight="bold">
+          {request.customCode || request.suggestedCode}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Chip
+          label={request.status}
+          size="small"
+          color={getStatusColor(request.status) as any}
+          variant="outlined"
+        />
+      </TableCell>
+      <TableCell>
+        <Chip
+          label={request.priority}
+          size="small"
+          color={getPriorityColor(request.priority) as any}
+          variant="outlined"
+        />
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2">
+          {request.createdAt.toLocaleDateString()}
+        </Typography>
+      </TableCell>
+      <TableCell align="right">
+        <IconButton
+          onClick={(e) => onMenuOpen(e, request)}
+          size="small"
+        >
+          <MoreIcon />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const RequestBasket: React.FC<RequestBasketProps> = ({
   showAddButton = true,
@@ -59,13 +220,38 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
     bulkUpdateStatus,
     downloadCSV,
     downloadJSON,
-    clearBasket
+    clearBasket,
+    reorderRequests
   } = useBasket();
 
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRequest, setSelectedRequest] = useState<DonorRequest | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Drop animation for better UX
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: '0.5',
+        },
+      },
+    }),
+  };
 
   // Memoized request grouping
   const groupedRequests = useMemo(() => {
@@ -76,6 +262,29 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
     };
     return groups;
   }, [basket.requests]);
+
+  // Drag and drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id && over) {
+      const oldIndex = basket.requests.findIndex(req => req.id === active.id);
+      const newIndex = basket.requests.findIndex(req => req.id === over.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        reorderRequests(oldIndex, newIndex);
+      }
+    }
+
+    setActiveId(null);
+  };
+
+  // Get the currently dragging request for overlay
+  const activeRequest = activeId ? basket.requests.find(req => req.id === activeId) : null;
 
   // Selection handlers
   const handleSelectAll = () => {
@@ -303,99 +512,97 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
           </Stack>
         )}
 
-        {/* Request table */}
-        <TableContainer component={Paper} variant="outlined">
-          <Table size={compact ? "small" : "medium"}>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    indeterminate={selectedRequests.length > 0 && selectedRequests.length < basket.requests.length}
-                    checked={basket.requests.length > 0 && selectedRequests.length === basket.requests.length}
-                    onChange={handleSelectAll}
-                    inputProps={{ 'aria-label': 'select all requests' }}
-                  />
-                </TableCell>
-                <TableCell>Action</TableCell>
-                <TableCell>Entity Name</TableCell>
-                <TableCell>Code</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {basket.requests.map((request) => (
-                <TableRow
-                  key={request.id}
-                  hover
-                  selected={selectedRequests.includes(request.id)}
-                >
+        {/* Request table with drag and drop */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <TableContainer component={Paper} variant="outlined">
+            <Table size={compact ? "small" : "medium"}>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="none" sx={{ width: 20 }}>
+                    <Tooltip title="Drag to reorder requests">
+                      <DragIcon fontSize="small" sx={{ opacity: 0.3 }} />
+                    </Tooltip>
+                  </TableCell>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedRequests.includes(request.id)}
-                      onChange={() => handleSelectRequest(request.id)}
+                      indeterminate={selectedRequests.length > 0 && selectedRequests.length < basket.requests.length}
+                      checked={basket.requests.length > 0 && selectedRequests.length === basket.requests.length}
+                      onChange={handleSelectAll}
+                      inputProps={{ 'aria-label': 'select all requests' }}
                     />
                   </TableCell>
-                  <TableCell>
-                    <Chip
-                      icon={getActionIcon(request.action)}
-                      label={request.action}
-                      size="small"
-                      color={getActionColor(request.action) as any}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="subtitle2">
-                      {request.entityName}
-                    </Typography>
-                    {request.justification && !compact && (
-                      <Typography variant="caption" color="text.secondary">
-                        {request.justification.substring(0, 50)}...
-                      </Typography>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Typography fontFamily="monospace" fontWeight="bold">
-                      {request.customCode || request.suggestedCode}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={request.status}
-                      size="small"
-                      color={getStatusColor(request.status) as any}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={request.priority}
-                      size="small"
-                      color={getPriorityColor(request.priority) as any}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {request.createdAt.toLocaleDateString()}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      onClick={(e) => handleMenuOpen(e, request)}
-                      size="small"
-                    >
-                      <MoreIcon />
-                    </IconButton>
-                  </TableCell>
+                  <TableCell>Action</TableCell>
+                  <TableCell>Entity Name</TableCell>
+                  <TableCell>Code</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                <SortableContext 
+                  items={basket.requests.map(r => r.id)} 
+                  strategy={verticalListSortingStrategy}
+                >
+                  {basket.requests.map((request) => (
+                    <SortableRequestRow
+                      key={request.id}
+                      request={request}
+                      isSelected={selectedRequests.includes(request.id)}
+                      onSelect={handleSelectRequest}
+                      onMenuOpen={handleMenuOpen}
+                      getActionIcon={getActionIcon}
+                      getActionColor={getActionColor}
+                      getStatusColor={getStatusColor}
+                      getPriorityColor={getPriorityColor}
+                      compact={compact}
+                      isDragging={activeId === request.id}
+                    />
+                  ))}
+                </SortableContext>
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Drag overlay for better visual feedback */}
+          <DragOverlay dropAnimation={dropAnimation}>
+            {activeRequest ? (
+              <TableContainer component={Paper} sx={{ maxWidth: 400, opacity: 0.9 }}>
+                <Table size="small">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>
+                        <Chip
+                          icon={getActionIcon(activeRequest.action)}
+                          label={activeRequest.action}
+                          size="small"
+                          color={getActionColor(activeRequest.action) as any}
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="subtitle2">
+                          {activeRequest.entityName}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography fontFamily="monospace" fontWeight="bold">
+                          {activeRequest.customCode || activeRequest.suggestedCode}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
 
         {/* Context menu */}
         <Menu
