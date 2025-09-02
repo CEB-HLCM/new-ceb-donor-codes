@@ -4,9 +4,11 @@ import emailjs from '@emailjs/browser';
 import type { DonorRequest, RequestSubmission } from '../types/request';
 
 // EmailJS configuration - Using environment variables for security
+// Note: Public key, service ID, and template ID are safe to expose in client-side code
+// as per EmailJS design. Private key is used for additional verification.
 const EMAIL_CONFIG = {
   publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-  privateKey: import.meta.env.VITE_EMAILJS_PRIVATE_KEY,
+  privateKey: import.meta.env.VITE_EMAILJS_PRIVATE_KEY, // Used for additional security, not authentication
   serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
   templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID
 };

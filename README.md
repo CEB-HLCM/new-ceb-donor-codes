@@ -136,6 +136,20 @@ VITE_EMAILJS_TEMPLATE_ID=your_template_id
 
 **Security Note**: Create a `.env.local` file in the project root with your EmailJS credentials. This file is automatically excluded from git commits for security.
 
+### Deployment Configuration
+
+When deploying to Netlify, the EmailJS credentials are safely exposed in the client-side bundle (this is by design for EmailJS). However, Netlify's security scanner may flag these as secrets. The `netlify.toml` configuration handles this:
+
+```toml
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_EMAILJS_PUBLIC_KEY,VITE_EMAILJS_SERVICE_ID,VITE_EMAILJS_TEMPLATE_ID"
+```
+
+**Important**: 
+- EmailJS public keys, service IDs, and template IDs are meant to be public
+- Set your environment variables in Netlify's dashboard under Site Settings > Environment Variables
+- The private key provides additional verification but is not sensitive authentication data
+
 ## 📋 Development Roadmap
 
 ### Upcoming Phases:
