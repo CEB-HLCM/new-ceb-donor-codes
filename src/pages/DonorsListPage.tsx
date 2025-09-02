@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Box,
+  Container,
   Typography,
   Table,
   TableBody,
@@ -152,7 +153,7 @@ const DonorsListPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
         CEB Donor Codes
       </Typography>
@@ -446,7 +447,7 @@ const DonorsListPage: React.FC = () => {
           {' '}repository
         </Typography>
       </Box>
-    </Box>
+    </Container>
   );
 };
 

@@ -37,9 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isAuthenticated = fals
     { text: 'Help', icon: <HelpIcon />, path: '/help' },
   ];
 
-  const authItem = isAuthenticated
-    ? { text: 'Logout', icon: <PersonIcon />, path: '/logout' }
-    : { text: 'Login', icon: <PersonIcon />, path: '/login' };
+  // Remove login/logout functionality since no login page exists
 
   return (
     <Drawer
@@ -94,24 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isAuthenticated = fals
           </ListItem>
         ))}
         
-        <ListItem
-          component={Link}
-          to={authItem.path}
-          onClick={onClose}
-          sx={{
-            color: '#111',
-            textDecoration: 'none',
-            backgroundColor: location.pathname === authItem.path ? 'rgba(0, 143, 213, 0.1)' : 'transparent',
-            '&:hover': {
-              backgroundColor: 'rgba(0, 143, 213, 0.05)',
-            },
-          }}
-        >
-          <ListItemIcon sx={{ color: '#111' }}>
-            {authItem.icon}
-          </ListItemIcon>
-          <ListItemText primary={authItem.text} />
-        </ListItem>
+        {/* Login/logout removed - no authentication in this app */}
       </List>
     </Drawer>
   );

@@ -570,86 +570,41 @@ const DonorRequestPage: React.FC = () => {
         </Alert>
       )}
 
-      <Grid container spacing={4}>
-        {/* Main Form */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card>
-            <CardContent>
-              <Stepper activeStep={activeStep} orientation="vertical">
-                {steps.map((stepLabel, index) => (
-                  <Step key={index}>
-                    <StepLabel>{stepLabel}</StepLabel>
-                    <StepContent>
-                      {renderStepContent(index)}
-                      
-                      {/* Navigation Buttons */}
-                      <Box sx={{ mb: 1, mt: 2 }}>
-                        <div>
-                          <Button
-                            disabled={index === 0}
-                            onClick={handleBack}
-                            sx={{ mt: 1, mr: 1 }}
-                          >
-                            Back
-                          </Button>
-                          <Button
-                            variant="contained"
-                            onClick={index === steps.length - 1 ? handleSubmit(onSubmit) : handleNext}
-                            sx={{ mt: 1, mr: 1 }}
-                          >
-                            {index === steps.length - 1 ? 'Submit' : 'Continue'}
-                          </Button>
-                        </div>
-                      </Box>
-                    </StepContent>
-                  </Step>
-                ))}
-              </Stepper>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Sidebar */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Stack spacing={3}>
-            {/* Validation Summary */}
-            <ValidationSummary
-              issues={getValidationIssues()}
-              isValid={isValid}
-              completionPercentage={calculateCompletion()}
-              compact
-            />
-
-            {/* Quick Actions */}
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Quick Actions
-                </Typography>
-                <Stack spacing={1}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSaveDraft}
-                  >
-                    Save Draft
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<RefreshIcon />}
-                    onClick={() => generateCodes(entityName, { contributorType })}
-                    disabled={!entityName || isGenerating}
-                  >
-                    Regenerate Codes
-                  </Button>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Stack>
-        </Grid>
-      </Grid>
+      {/* Main Form - Single Column Layout */}
+      <Card>
+        <CardContent>
+          <Stepper activeStep={activeStep} orientation="vertical">
+            {steps.map((stepLabel, index) => (
+              <Step key={index}>
+                <StepLabel>{stepLabel}</StepLabel>
+                <StepContent>
+                  {renderStepContent(index)}
+                  
+                  {/* Navigation Buttons */}
+                  <Box sx={{ mb: 1, mt: 2 }}>
+                    <div>
+                      <Button
+                        disabled={index === 0}
+                        onClick={handleBack}
+                        sx={{ mt: 1, mr: 1 }}
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={index === steps.length - 1 ? handleSubmit(onSubmit) : handleNext}
+                        sx={{ mt: 1, mr: 1 }}
+                      >
+                        {index === steps.length - 1 ? 'Submit' : 'Continue'}
+                      </Button>
+                    </div>
+                  </Box>
+                </StepContent>
+              </Step>
+            ))}
+          </Stepper>
+        </CardContent>
+      </Card>
     </Container>
   );
 };

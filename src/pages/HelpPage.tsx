@@ -1,9 +1,9 @@
 import React from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Container, Typography, Paper } from '@mui/material';
 
 const HelpPage: React.FC = () => {
   return (
-    <Box sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         Help & Information
       </Typography>
@@ -33,7 +33,7 @@ const HelpPage: React.FC = () => {
           • Track your submissions in <strong>Requests</strong>
         </Typography>
       </Paper>
-    </Box>
+    </Container>
   );
 };
 
