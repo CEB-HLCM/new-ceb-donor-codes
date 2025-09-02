@@ -31,9 +31,22 @@ export class EmailService {
    */
   async initialize(): Promise<void> {
     try {
+      // Debug: Log environment variables (values will be visible in production, which is OK for EmailJS)
+      console.log('EmailJS Environment Variables:', {
+        publicKey: EMAIL_CONFIG.publicKey ? `${EMAIL_CONFIG.publicKey.substring(0, 8)}...` : 'MISSING',
+        privateKey: EMAIL_CONFIG.privateKey ? `${EMAIL_CONFIG.privateKey.substring(0, 8)}...` : 'MISSING',
+        serviceId: EMAIL_CONFIG.serviceId || 'MISSING',
+        templateId: EMAIL_CONFIG.templateId || 'MISSING'
+      });
+
       // Validate environment variables are loaded
       if (!EMAIL_CONFIG.publicKey || !EMAIL_CONFIG.serviceId || !EMAIL_CONFIG.templateId) {
-        throw new Error('EmailJS environment variables not properly configured. Check .env.local file.');
+        const missing = [];
+        if (!EMAIL_CONFIG.publicKey) missing.push('VITE_EMAILJS_PUBLIC_KEY');
+        if (!EMAIL_CONFIG.serviceId) missing.push('VITE_EMAILJS_SERVICE_ID');
+        if (!EMAIL_CONFIG.templateId) missing.push('VITE_EMAILJS_TEMPLATE_ID');
+        
+        throw new Error(`EmailJS environment variables not configured: ${missing.join(', ')}. Set these in Netlify Site Settings > Environment Variables.`);
       }
 
       emailjs.init(EMAIL_CONFIG.publicKey);
