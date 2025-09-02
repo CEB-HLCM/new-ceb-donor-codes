@@ -10,15 +10,16 @@ This is a complete rebuild of the existing CEB Donor Codes application using mod
 
 ## ✅ Current Implementation Status
 
-### Completed Phases (Phases 1-4B)
+### Completed Phases (Phases 1-5)
 
 - ✅ **Phase 1**: Styling & Branding Setup - Visual parity with original app
 - ✅ **Phase 2**: Dynamic Data Loading Service - Real-time CSV fetching from GitHub
 - ✅ **Phase 3**: Enhanced Search Functionality - Multiple search algorithms with professional UX
 - ✅ **Phase 4**: Donor Request Form & Code Generation - Intelligent code generation with validation
 - ✅ **Phase 4B**: Update/Remove Request Forms - Complete donor lifecycle management
+- ✅ **Phase 5**: Request Basket & Management - Drag-and-drop, validation, and submission history
 
-### 🚀 Next Phase: Phase 5 - Request Basket & Management
+### 🚀 Next Phase: Phase 6 - Enhanced EmailJS Integration & Notifications
 
 ## 🛠️ Technology Stack
 
@@ -28,6 +29,7 @@ This is a complete rebuild of the existing CEB Donor Codes application using mod
 - **Form Management**: React Hook Form with Zod validation
 - **Search**: Fuse.js for fuzzy search + custom algorithms
 - **Routing**: React Router DOM v7
+- **Drag & Drop**: @dnd-kit for modern drag-and-drop functionality
 - **Email Service**: EmailJS for submission workflow
 - **Utilities**: Lodash, UUID, Soundex
 
@@ -50,6 +52,14 @@ This is a complete rebuild of the existing CEB Donor Codes application using mod
 - **Update Requests**: Modify existing donor information with change tracking
 - **Remove Requests**: Proper removal workflow with justification requirements
 - **Form Persistence**: Manual save/load functionality for draft requests
+
+### Enhanced Basket Management (Phase 5)
+- **Drag-and-Drop Reordering**: Modern @dnd-kit implementation for request prioritization
+- **Advanced Validation Engine**: 100-point scoring system with detailed error/warning feedback
+- **Multi-step Submission Flow**: Prepare → Validate → Submit workflow preventing invalid submissions
+- **Request History Tracking**: 30-day submission history with restore capabilities
+- **Bulk Operations**: Select multiple requests for batch actions and submission
+- **Smart Persistence**: Local storage with automatic expiry and data management
 
 ## 📊 Data Sources
 
@@ -115,29 +125,20 @@ npm run dev
 ## 🔧 Configuration
 
 ### EmailJS Integration
-The application uses EmailJS for submitting requests to the CEB team. Configuration is in `src/services/emailService.ts`:
-
-```typescript
-const EMAIL_CONFIG = {
-  serviceId: 'add_new_duty_station',
-  templateId: 'template_okd4w8x',
-  userId: 'user_ANTAfHrBooXuOmxNxi1Yn'
-};
-```
-
-### Environment Variables (Optional)
-For enhanced security, you can move EmailJS configuration to environment variables:
+The application uses EmailJS for submitting requests to the CEB team. Configuration uses secure environment variables in `.env.local`:
 
 ```env
-VITE_EMAILJS_SERVICE_ID=add_new_duty_station
-VITE_EMAILJS_TEMPLATE_ID=template_okd4w8x
-VITE_EMAILJS_USER_ID=user_ANTAfHrBooXuOmxNxi1Yn
+VITE_EMAILJS_PUBLIC_KEY=your_public_key
+VITE_EMAILJS_PRIVATE_KEY=your_private_key
+VITE_EMAILJS_SERVICE_ID=your_service_id
+VITE_EMAILJS_TEMPLATE_ID=your_template_id
 ```
+
+**Security Note**: Create a `.env.local` file in the project root with your EmailJS credentials. This file is automatically excluded from git commits for security.
 
 ## 📋 Development Roadmap
 
 ### Upcoming Phases:
-- **Phase 5**: Request Basket & Management with drag-and-drop functionality
 - **Phase 6**: Enhanced EmailJS Integration with bulk notifications
 - **Phase 7**: State Management & Performance Optimization
 - **Phase 8**: Testing & Quality Assurance
@@ -193,5 +194,5 @@ This project is developed for the UN CEB (United Nations System Chief Executives
 
 ---
 
-**Status**: ✅ Production-ready for Phases 1-4B | 🚧 Phase 5 in development
+**Status**: ✅ Production-ready for Phases 1-5 | 🚧 Phase 6 in development
 **Last Updated**: January 2025
