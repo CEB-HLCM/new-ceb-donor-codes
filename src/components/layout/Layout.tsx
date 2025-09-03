@@ -3,6 +3,7 @@ import { Box, Toolbar } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import BottomNavbar from './BottomNavbar';
 
 interface LayoutProps {
   requestCount?: number;
@@ -39,6 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ requestCount = 0, isAuthenticated = fal
           flexGrow: 1,
           bgcolor: 'background.default',
           minHeight: '100vh',
+          paddingBottom: '64px', // Space for bottom navigation
         }}
       >
         <Toolbar /> {/* This creates space for the fixed AppBar */}
@@ -46,6 +48,8 @@ const Layout: React.FC<LayoutProps> = ({ requestCount = 0, isAuthenticated = fal
           <Outlet />
         </Box>
       </Box>
+      
+      <BottomNavbar requestCount={requestCount} />
     </Box>
   );
 };
