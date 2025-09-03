@@ -17,6 +17,7 @@ export const cebColors = {
 } as const;
 
 const themeOptions = {
+  defaultColorScheme: 'light',
   colorSchemes: {
     light: {
       palette: {
