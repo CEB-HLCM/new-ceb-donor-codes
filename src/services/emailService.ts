@@ -31,13 +31,7 @@ export class EmailService {
    */
   async initialize(): Promise<void> {
     try {
-      // Debug: Log environment variables (values will be visible in production, which is OK for EmailJS)
-      console.log('EmailJS Environment Variables:', {
-        publicKey: EMAIL_CONFIG.publicKey ? `${EMAIL_CONFIG.publicKey.substring(0, 8)}...` : 'MISSING',
-        privateKey: EMAIL_CONFIG.privateKey ? `${EMAIL_CONFIG.privateKey.substring(0, 8)}...` : 'MISSING',
-        serviceId: EMAIL_CONFIG.serviceId || 'MISSING',
-        templateId: EMAIL_CONFIG.templateId || 'MISSING'
-      });
+
 
       // Validate environment variables are loaded
       if (!EMAIL_CONFIG.publicKey || !EMAIL_CONFIG.serviceId || !EMAIL_CONFIG.templateId) {
@@ -51,7 +45,6 @@ export class EmailService {
 
       emailjs.init(EMAIL_CONFIG.publicKey);
       this.initialized = true;
-      console.log('EmailJS initialized successfully with environment variables');
     } catch (error) {
       console.error('Failed to initialize EmailJS:', error);
       throw new Error(`Email service initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -83,8 +76,6 @@ export class EmailService {
         EMAIL_CONFIG.templateId,
         emailContent
       );
-
-      console.log('Email sent successfully:', response);
 
       return {
         success: true,

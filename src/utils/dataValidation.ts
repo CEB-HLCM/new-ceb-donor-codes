@@ -122,29 +122,10 @@ export function logDataReport(
   contributorTypes: ContributorType[],
   donorsWithTypes: DonorWithType[]
 ) {
-  console.group('🔍 Data Validation Report');
-  
   const validation = validateDataIntegrity(donors, contributorTypes);
   const summary = generateDataSummary(donorsWithTypes);
 
-  console.log('📊 Data Counts:', {
-    donors: validation.donorsCount,
-    contributorTypes: validation.contributorTypesCount,
-  });
-
-  console.log('🔗 Relationship Validation:', {
-    valid: validation.validRelationships,
-    invalid: validation.invalidRelationships,
-    missingTypes: validation.missingContributorTypes,
-  });
-
-  console.log('📋 Summary by Type:', {
-    government: summary.government,
-    nonGovernment: summary.nonGovernment,
-    withTypeInfo: summary.withValidTypeInfo,
-    withoutTypeInfo: summary.withoutTypeInfo,
-  });
-
+  // Only log warnings for data quality issues
   if (validation.duplicateCebCodes.length > 0) {
     console.warn('⚠️  Duplicate CEB Codes:', validation.duplicateCebCodes);
   }
@@ -152,13 +133,4 @@ export function logDataReport(
   if (validation.emptyFields.names > 0 || validation.emptyFields.cebCodes > 0) {
     console.warn('⚠️  Empty Fields:', validation.emptyFields);
   }
-
-  console.log('📈 Contributor Type Distribution:');
-  Array.from(summary.byContributorType.entries())
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([type, count]) => {
-      console.log(`  ${type}: ${count}`);
-    });
-
-  console.groupEnd();
 }

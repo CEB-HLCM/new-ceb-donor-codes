@@ -143,7 +143,6 @@ const DonorRequestPage: React.FC = () => {
     try {
       localStorage.setItem('donor-request-draft', JSON.stringify(formData));
       setHasDraft(true);
-      console.log('Draft saved successfully');
     } catch (error) {
       console.error('Failed to save draft:', error);
     }
@@ -154,7 +153,6 @@ const DonorRequestPage: React.FC = () => {
     try {
       localStorage.removeItem('donor-request-draft');
       setHasDraft(false);
-      console.log('Draft cleared successfully');
     } catch (error) {
       console.error('Failed to clear draft:', error);
     }
@@ -227,8 +225,6 @@ const DonorRequestPage: React.FC = () => {
     if (isStepValid) {
       setActiveStep((prev) => prev + 1);
     } else {
-      console.log(`Step validation failed for step ${activeStep}, fields:`, fieldsToValidate);
-      
       // Show user-friendly error messages
       if (fieldsToValidate.length > 0) {
         const fieldLabels = {
@@ -260,8 +256,6 @@ const DonorRequestPage: React.FC = () => {
   // Form submission
   const onSubmit = async (data: DonorRequestFormData) => {
     try {
-      console.log('Submitting donor request:', data);
-      
       // Save contact details for future use
       updateContactDetails({
         contactName: data.contactName,

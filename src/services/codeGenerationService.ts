@@ -49,15 +49,12 @@ export class CodeGenerationService {
       throw new Error('Entity name is required for code generation');
     }
 
-    console.log(`🔍 Generating codes for: "${entityName}"`);
     const suggestions: GeneratedCodeSuggestion[] = [];
     
     // Strategy 1: Initials-based codes
     const initials = extractInitials(entityName);
-    console.log(`📝 Extracted initials:`, initials);
     for (const initial of initials) {
       const codes = this.generateFromInitials(initial, preferredLength);
-      console.log(`🎯 Generated codes from "${initial}":`, codes);
       suggestions.push(...codes.map(code => this.createSuggestion(code, entityName, 'initials')));
     }
 
@@ -82,7 +79,6 @@ export class CodeGenerationService {
 
     if (sortedSuggestions.length === 0) {
       // Fallback: Generate simple codes when main algorithms fail
-      console.log('Main algorithms failed, generating fallback codes...');
       const fallbackCodes = this.generateFallbackCodes(entityName);
       if (fallbackCodes.length > 0) {
         sortedSuggestions.push(...fallbackCodes);

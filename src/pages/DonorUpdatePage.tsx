@@ -278,7 +278,6 @@ const DonorUpdatePage: React.FC = () => {
 
     // Add to basket
     addRequest(updateRequest);
-    console.log('Update request added to basket:', updateRequest);
     
     // Show success message
     alert('Update request added to basket successfully! You can review and submit multiple requests from the Request Management page.');

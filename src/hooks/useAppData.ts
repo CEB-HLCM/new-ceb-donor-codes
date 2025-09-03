@@ -51,12 +51,6 @@ export function useAppData(): DataState {
             }));
           }
 
-          console.log('Data loaded successfully:', {
-            donors: result.donors.length,
-            contributorTypes: result.contributorTypes.length,
-            donorsWithTypes: result.donorsWithTypes.length,
-          });
-
           // Log detailed validation report in development
           if (process.env.NODE_ENV === 'development') {
             logDataReport(result.donors, result.contributorTypes, result.donorsWithTypes);

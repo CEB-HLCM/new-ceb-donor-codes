@@ -17,7 +17,6 @@ const CONTRIBUTOR_TYPES_CSV_URL = `${GITHUB_RAW_BASE}/CONTRIBUTOR_TYPES.csv`;
  */
 function parseCSV<T>(csvText: string): T[] {
   const lines = csvText.trim().split('\n');
-  console.log(`CSV Parsing: ${lines.length} lines found`);
   
   if (lines.length < 2) {
     console.warn('CSV has less than 2 lines:', lines);
@@ -26,7 +25,6 @@ function parseCSV<T>(csvText: string): T[] {
 
   // Clean up headers (remove BOM and extra whitespace)
   const headers = lines[0].replace(/^\uFEFF/, '').split(',').map(h => h.trim());
-  console.log('CSV Headers:', headers);
   
   const result: T[] = [];
 
@@ -48,7 +46,6 @@ function parseCSV<T>(csvText: string): T[] {
     result.push(obj);
   }
 
-  console.log(`CSV Parsing completed: ${result.length} records`);
   return result;
 }
 
@@ -134,15 +131,7 @@ async function fetchCSV(url: string, retries = 3): Promise<string> {
 export async function fetchDonors(): Promise<ApiResponse<Donor[]>> {
   try {
     const csvText = await fetchCSV(DONORS_CSV_URL);
-    console.log('Raw CSV Text Sample:', csvText.substring(0, 500) + '...');
-    
     const donors = parseCSV<Donor>(csvText);
-    console.log(`Loaded ${donors.length} donors from CSV`);
-    
-    // Log first few donors to check data structure
-    if (donors.length > 0) {
-      console.log('First 3 donors:', donors.slice(0, 3));
-    }
     
     return {
       data: donors,
@@ -167,7 +156,6 @@ export async function fetchContributorTypes(): Promise<ApiResponse<ContributorTy
     const csvText = await fetchCSV(CONTRIBUTOR_TYPES_CSV_URL);
     const contributorTypes = parseCSV<ContributorType>(csvText);
     
-    console.log(`Loaded ${contributorTypes.length} contributor types from CSV`);
     return {
       data: contributorTypes,
       success: true,

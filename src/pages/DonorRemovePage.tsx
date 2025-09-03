@@ -207,7 +207,6 @@ const DonorRemovePage: React.FC = () => {
 
     // Add to basket
     addRequest(removalRequest);
-    console.log('Removal request added to basket:', removalRequest);
     
     // Show success message
     alert('Removal request added to basket successfully! You can review and submit multiple requests from the Request Management page.');

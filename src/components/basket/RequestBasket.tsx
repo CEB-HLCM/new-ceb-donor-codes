@@ -652,9 +652,6 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
         open={showSubmissionDialog}
         onClose={() => setShowSubmissionDialog(false)}
         onSubmissionComplete={(success, submissionId) => {
-          if (success) {
-            console.log('Submission completed successfully:', submissionId);
-          }
           setShowSubmissionDialog(false);
         }}
       />
