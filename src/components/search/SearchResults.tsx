@@ -73,14 +73,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       <Box
         component="span"
         dangerouslySetInnerHTML={{ __html: highlighted }}
-        sx={{
+        sx={(theme) => ({
           '& mark': { 
-            backgroundColor: 'warning.light', 
+            backgroundColor: theme.palette.mode === 'dark' ? '#1565c0' : '#bbdefb', 
             padding: '0 2px',
             borderRadius: '2px',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000'
           }
-        }}
+        })}
       />
     );
   };
@@ -216,11 +217,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                         to={`/donor-update/${encodeURIComponent(donor['CEB CODE'])}`}
                         variant="contained"
                         size="small"
-                        sx={{ 
-                          backgroundColor: 'warning.main',
+                        sx={(theme) => ({ 
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? theme.palette.action?.update || '#2196f3'
+                            : '#1976d2',
                           color: 'white',
-                          '&:hover': { backgroundColor: 'warning.dark' }
-                        }}
+                          '&:hover': { 
+                            backgroundColor: theme.palette.mode === 'dark'
+                              ? theme.palette.action?.updateHover || '#1976d2'
+                              : '#1565c0'
+                          }
+                        })}
                       >
                         Update
                       </Button>
@@ -229,10 +236,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                         to={`/donor-remove/${encodeURIComponent(donor['CEB CODE'])}`}
                         variant="contained"
                         size="small"
-                        color="error"
-                        sx={{ 
-                          '&:hover': { backgroundColor: 'error.dark' }
-                        }}
+                        sx={(theme) => ({ 
+                          backgroundColor: theme.palette.mode === 'dark'
+                            ? theme.palette.action?.remove || '#1565c0'
+                            : '#0d47a1',
+                          color: 'white',
+                          '&:hover': { 
+                            backgroundColor: theme.palette.mode === 'dark'
+                              ? theme.palette.action?.removeHover || '#0d47a1'
+                              : '#0a237d'
+                          }
+                        })}
                       >
                         Remove
                       </Button>

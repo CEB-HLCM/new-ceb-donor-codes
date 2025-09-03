@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import logo from '../../assets/logo-1.svg';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -42,17 +43,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, requestCount = 0 }) => {
           </Link>
         </Box>
         
-        <Link 
-          to="/requests-list" 
-          style={{ textDecoration: 'none', color: 'inherit' }}
-          title={`You have ${requestCount} pending request(s).`}
-        >
-          <IconButton aria-label="show requests" color="inherit">
-            <Badge badgeContent={requestCount} color="secondary">
-              <ListAltIcon />
-            </Badge>
-          </IconButton>
-        </Link>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <ThemeToggle />
+          <Link 
+            to="/requests-list" 
+            style={{ textDecoration: 'none', color: 'inherit' }}
+            title={`You have ${requestCount} pending request(s).`}
+          >
+            <IconButton aria-label="show requests" color="inherit">
+              <Badge badgeContent={requestCount} color="secondary">
+                <ListAltIcon />
+              </Badge>
+            </IconButton>
+          </Link>
+        </Box>
       </Toolbar>
     </AppBar>
   );

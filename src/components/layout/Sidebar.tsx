@@ -76,16 +76,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isAuthenticated = fals
             component={Link}
             to={item.path}
             onClick={onClose}
-            sx={{
-              color: '#111',
+            sx={(theme) => ({
+              color: theme.palette.text.primary,
               textDecoration: 'none',
-              backgroundColor: location.pathname === item.path ? 'rgba(0, 143, 213, 0.1)' : 'transparent',
+              backgroundColor: location.pathname === item.path 
+                ? theme.palette.mode === 'dark' 
+                  ? 'rgba(76, 175, 255, 0.15)' 
+                  : 'rgba(0, 143, 213, 0.1)' 
+                : 'transparent',
               '&:hover': {
-                backgroundColor: 'rgba(0, 143, 213, 0.05)',
+                backgroundColor: theme.palette.mode === 'dark'
+                  ? 'rgba(76, 175, 255, 0.08)'
+                  : 'rgba(0, 143, 213, 0.05)',
               },
-            }}
+            })}
           >
-            <ListItemIcon sx={{ color: '#111' }}>
+            <ListItemIcon sx={(theme) => ({ color: theme.palette.text.primary })}>
               {item.icon}
             </ListItemIcon>
             <ListItemText primary={item.text} />

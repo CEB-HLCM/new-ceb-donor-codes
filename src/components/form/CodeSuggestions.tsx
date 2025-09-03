@@ -206,7 +206,8 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
                           style={{
                             width: '100%',
                             padding: '8px 12px',
-                            border: '1px solid #ccc',
+                            border: '1px solid',
+                            borderColor: 'rgba(0, 0, 0, 0.23)',
                             borderRadius: '4px',
                             fontSize: '14px',
                             fontFamily: 'monospace'

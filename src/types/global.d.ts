@@ -22,4 +22,25 @@ declare global {
   function expect<T>(actual: T): any;
 }
 
+// Material-UI theme augmentation for custom action colors
+declare module '@mui/material/styles' {
+  interface Palette {
+    action: Palette['action'] & {
+      update?: string;
+      updateHover?: string;
+      remove?: string;
+      removeHover?: string;
+    };
+  }
+
+  interface PaletteOptions {
+    action?: PaletteOptions['action'] & {
+      update?: string;
+      updateHover?: string;
+      remove?: string;
+      removeHover?: string;
+    };
+  }
+}
+
 export {};

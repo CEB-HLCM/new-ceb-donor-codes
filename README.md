@@ -18,6 +18,7 @@ This is a complete rebuild of the existing CEB Donor Codes application using mod
 - ✅ **Phase 4**: Donor Request Form & Code Generation - Intelligent code generation with validation
 - ✅ **Phase 4B**: Update/Remove Request Forms - Complete donor lifecycle management
 - ✅ **Phase 5**: Request Basket & Management - Drag-and-drop, validation, and submission history
+- ✅ **Phase 5B**: Persistent Bottom Navigation - Always-accessible icon navigation
 
 ### 🚀 Next Phase: Phase 6 - Enhanced EmailJS Integration & Notifications
 
@@ -60,6 +61,14 @@ This is a complete rebuild of the existing CEB Donor Codes application using mod
 - **Request History Tracking**: 30-day submission history with restore capabilities
 - **Bulk Operations**: Select multiple requests for batch actions and submission
 - **Smart Persistence**: Local storage with automatic expiry and data management
+
+### Persistent Bottom Navigation (Phase 5B)
+- **Always-Accessible Navigation**: Sticky bottom navbar visible on all pages for quick navigation
+- **Icon-Only Design**: Compact 6-icon layout (Home, Search, Add Donor, Donors List, Requests, Help)
+- **Live Request Badge**: Real-time request count display on requests icon
+- **Active State Management**: Visual indication of current page location
+- **Mobile-First UX**: Industry-standard bottom navigation pattern optimized for mobile devices
+- **Professional Integration**: Material-UI BottomNavigation with consistent theming
 
 ## 📊 Data Sources
 
@@ -208,5 +217,5 @@ This project is developed for the UN CEB (United Nations System Chief Executives
 
 ---
 
-**Status**: ✅ Production-ready for Phases 1-5 | 🚧 Phase 6 in development
+**Status**: ✅ Production-ready for Phases 1-5B | 🚧 Phase 6 in development
 **Last Updated**: January 2025
