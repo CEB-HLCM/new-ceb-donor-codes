@@ -40,6 +40,10 @@ import { useBasket } from '../hooks/useBasket';
 import CodePreview from '../components/form/CodePreview';
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
+import EnglishValidationAlert from '../components/form/EnglishValidationAlert';
+
+import { validateEnglishName, getDefaultEnglishValidationConfig } from '../utils/englishValidation';
+import type { EnglishValidationResult } from '../utils/englishValidation';
 
 import { donorRequestSchema } from '../schemas/donorRequestSchema';
 import type { DonorRequestFormData } from '../schemas/donorRequestSchema';
@@ -60,6 +64,10 @@ const DonorRequestPage: React.FC = () => {
   const [selectedCode, setSelectedCode] = useState('');
   const [customCode, setCustomCode] = useState('');
   const [showCodePreview, setShowCodePreview] = useState(false);
+  
+  // English validation state
+  const [englishValidation, setEnglishValidation] = useState<EnglishValidationResult | null>(null);
+  const [showEnglishWarning, setShowEnglishWarning] = useState(false);
 
   // Form management
   const {
@@ -82,7 +90,9 @@ const DonorRequestPage: React.FC = () => {
       contactEmail: '',
       contactName: '',
       priority: 'normal' as const,
-      additionalNotes: ''
+      additionalNotes: '',
+      nonEnglishJustification: '',
+      acknowledgeNonEnglish: false
     },
     mode: 'onChange'
   });
@@ -90,6 +100,8 @@ const DonorRequestPage: React.FC = () => {
   // Watch form values for real-time updates
   const entityName = watch('entityName');
   const contributorType = watch('contributorType');
+  const acknowledgeNonEnglish = watch('acknowledgeNonEnglish');
+  const nonEnglishJustification = watch('nonEnglishJustification');
   
   // Code generation
   const {
@@ -122,6 +134,19 @@ const DonorRequestPage: React.FC = () => {
       setShowCodePreview(false);
     }
   }, [entityName, contributorType, generateCodes]);
+
+  // Validate English name when entity name changes
+  useEffect(() => {
+    if (entityName && entityName.length >= 2) {
+      const config = getDefaultEnglishValidationConfig();
+      const validation = validateEnglishName(entityName, config);
+      setEnglishValidation(validation);
+      setShowEnglishWarning(!validation.isValid);
+    } else {
+      setEnglishValidation(null);
+      setShowEnglishWarning(false);
+    }
+  }, [entityName]);
 
   // Auto-fill contact details from storage when loaded
   useEffect(() => {
@@ -194,6 +219,21 @@ const DonorRequestPage: React.FC = () => {
       setValue('suggestedCode', code);
       trigger('suggestedCode');
     }
+  };
+
+  // English validation handlers
+  const handleAcknowledgeNonEnglish = (acknowledged: boolean) => {
+    setValue('acknowledgeNonEnglish', acknowledged);
+  };
+
+  const handleNonEnglishJustificationChange = (justification: string) => {
+    setValue('nonEnglishJustification', justification);
+  };
+
+  const handleSuggestionApply = (suggestion: string) => {
+    setValue('entityName', suggestion);
+    // Re-trigger validation after applying suggestion
+    trigger('entityName');
   };
 
   // Step navigation with step-specific validation
@@ -346,6 +386,20 @@ const DonorRequestPage: React.FC = () => {
                 />
               )}
             />
+
+            {/* English validation alert */}
+            {showEnglishWarning && englishValidation && (
+              <EnglishValidationAlert
+                validation={englishValidation}
+                entityName={entityName}
+                acknowledged={acknowledgeNonEnglish || false}
+                justification={nonEnglishJustification || ''}
+                onAcknowledgeChange={handleAcknowledgeNonEnglish}
+                onJustificationChange={handleNonEnglishJustificationChange}
+                onSuggestionApply={handleSuggestionApply}
+                showJustificationField={true}
+              />
+            )}
 
             <Controller
               name="contributorType"

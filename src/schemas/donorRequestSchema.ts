@@ -1,6 +1,7 @@
 // Zod validation schema for donor request form
 
 import { z } from 'zod';
+import { validateEnglishName, getDefaultEnglishValidationConfig } from '../utils/englishValidation';
 
 export const donorRequestSchema = z.object({
   entityName: z
@@ -9,14 +10,36 @@ export const donorRequestSchema = z.object({
     .max(200, 'Entity name cannot exceed 200 characters')
     .refine(
       (val) => {
-        // Allow all printable characters except control characters
-        // This includes letters, numbers, spaces, and common punctuation/symbols
+        // Basic character validation (keep existing for backward compatibility)
         const hasValidChars = /^[\x20-\x7E\u00A0-\uFFFF]+$/.test(val);
         const hasContent = val.trim().length > 0;
         return hasValidChars && hasContent;
       },
       { 
         message: 'Entity name contains invalid characters. Please use standard letters, numbers, spaces, and common punctuation only.' 
+      }
+    )
+    .refine(
+      (val) => {
+        // English validation (warning level - doesn't block submission)
+        const config = getDefaultEnglishValidationConfig();
+        const validation = validateEnglishName(val, config);
+        
+        // Only block on strict errors, allow warnings to pass through
+        return validation.isValid || validation.issues.every(issue => 
+          issue.type !== 'error' || issue.canOverride
+        );
+      },
+      (val) => {
+        const config = getDefaultEnglishValidationConfig();
+        const validation = validateEnglishName(val, config);
+        const errorIssues = validation.issues.filter(issue => issue.type === 'error');
+        
+        return {
+          message: errorIssues.length > 0 
+            ? errorIssues[0].message 
+            : 'Entity name may not be in English - please verify or provide justification'
+        };
       }
     ),
 
@@ -77,6 +100,17 @@ export const donorRequestSchema = z.object({
   additionalNotes: z
     .string()
     .max(1000, 'Additional notes cannot exceed 1000 characters')
+    .optional(),
+
+  // New field for non-English name justification
+  nonEnglishJustification: z
+    .string()
+    .max(500, 'Non-English justification cannot exceed 500 characters')
+    .optional(),
+
+  // Flag to indicate user acknowledges non-English name
+  acknowledgeNonEnglish: z
+    .boolean()
     .optional()
 });
 
@@ -93,5 +127,7 @@ export const fieldSchemas = {
   contactEmail: donorRequestSchema.shape.contactEmail,
   contactName: donorRequestSchema.shape.contactName,
   priority: donorRequestSchema.shape.priority,
-  additionalNotes: donorRequestSchema.shape.additionalNotes
+  additionalNotes: donorRequestSchema.shape.additionalNotes,
+  nonEnglishJustification: donorRequestSchema.shape.nonEnglishJustification,
+  acknowledgeNonEnglish: donorRequestSchema.shape.acknowledgeNonEnglish
 };
