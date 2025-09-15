@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   Box,
@@ -59,7 +59,9 @@ const steps = [
 
 const DonorRequestPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const { contributorTypes } = useDataContext();
+  const { getRequest, addRequest, updateRequest } = useBasket();
   const [activeStep, setActiveStep] = useState(0);
   const [selectedCode, setSelectedCode] = useState('');
   const [customCode, setCustomCode] = useState('');
@@ -117,8 +119,7 @@ const DonorRequestPage: React.FC = () => {
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
   
-  // Basket management
-  const { addRequest } = useBasket();
+  // Basket management (imported above with other methods)
 
   // Simple draft management without complex hooks to prevent infinite loops
   const [hasDraft, setHasDraft] = useState(false);
@@ -141,20 +142,46 @@ const DonorRequestPage: React.FC = () => {
       const config = getDefaultEnglishValidationConfig();
       const validation = validateEnglishName(entityName, config);
       setEnglishValidation(validation);
-      setShowEnglishWarning(!validation.isValid);
+      // Show warning if there are any issues, regardless of overall validity
+      setShowEnglishWarning(validation.issues.length > 0);
     } else {
       setEnglishValidation(null);
       setShowEnglishWarning(false);
     }
   }, [entityName]);
 
+  // Load existing request for editing
+  useEffect(() => {
+    if (id) {
+      const existingRequest = getRequest(id);
+      if (existingRequest) {
+        // Pre-fill form with existing request data
+        setValue('entityName', existingRequest.entityName);
+        setValue('suggestedCode', existingRequest.suggestedCode);
+        setValue('customCode', existingRequest.customCode || '');
+        setValue('contributorType', existingRequest.contributorType);
+        setValue('donorType', existingRequest.originalDonor?.type || '0');
+        setValue('justification', existingRequest.justification);
+        setValue('contactName', existingRequest.contactName);
+        setValue('contactEmail', existingRequest.contactEmail);
+        setValue('priority', existingRequest.priority);
+        setValue('additionalNotes', existingRequest.additionalNotes || '');
+        setValue('nonEnglishJustification', existingRequest.nonEnglishJustification || '');
+        setValue('acknowledgeNonEnglish', existingRequest.acknowledgeNonEnglish || false);
+        
+        setSelectedCode(existingRequest.suggestedCode);
+        setCustomCode(existingRequest.customCode || '');
+      }
+    }
+  }, [id, getRequest, setValue]);
+
   // Auto-fill contact details from storage when loaded
   useEffect(() => {
-    if (contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
+    if (!id && contactLoaded && contactDetails.contactName && contactDetails.contactEmail) {
       setValue('contactName', contactDetails.contactName);
       setValue('contactEmail', contactDetails.contactEmail);
     }
-  }, [contactLoaded, contactDetails, setValue]);
+  }, [id, contactLoaded, contactDetails, setValue]);
 
   // Save contact details when they change and are valid
   const handleContactUpdate = useCallback((field: 'contactName' | 'contactEmail', value: string) => {
@@ -302,25 +329,51 @@ const DonorRequestPage: React.FC = () => {
         contactEmail: data.contactEmail
       });
       
-      // Create request object for basket
-      const request: DonorRequest = {
-        id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        action: 'new',
-        entityName: data.entityName,
-        suggestedCode: data.suggestedCode,
-        customCode: data.customCode || undefined,
-        contributorType: data.contributorType,
-        justification: data.justification,
-        contactEmail: data.contactEmail,
-        contactName: data.contactName,
-        priority: data.priority,
-        additionalNotes: data.additionalNotes || undefined,
-        createdAt: new Date(),
-        status: 'draft'
-      };
-      
-      // Add to basket
-      addRequest(request);
+      if (id) {
+        // Update existing request
+        const existingRequest = getRequest(id);
+        if (existingRequest) {
+          const updates: Partial<DonorRequest> = {
+            entityName: data.entityName,
+            suggestedCode: data.suggestedCode,
+            customCode: data.customCode || undefined,
+            contributorType: data.contributorType,
+            justification: data.justification,
+            contactEmail: data.contactEmail,
+            contactName: data.contactName,
+            priority: data.priority,
+            additionalNotes: data.additionalNotes || undefined,
+            nonEnglishJustification: data.nonEnglishJustification || undefined,
+            acknowledgeNonEnglish: data.acknowledgeNonEnglish || false,
+            updatedAt: new Date()
+          };
+          
+          // Update in basket
+          updateRequest(id, updates);
+        }
+      } else {
+        // Create new request
+        const request: DonorRequest = {
+          id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          action: 'new',
+          entityName: data.entityName,
+          suggestedCode: data.suggestedCode,
+          customCode: data.customCode || undefined,
+          contributorType: data.contributorType,
+          justification: data.justification,
+          contactEmail: data.contactEmail,
+          contactName: data.contactName,
+          priority: data.priority,
+          additionalNotes: data.additionalNotes || undefined,
+          nonEnglishJustification: data.nonEnglishJustification || undefined,
+          acknowledgeNonEnglish: data.acknowledgeNonEnglish || false,
+          createdAt: new Date(),
+          status: 'draft'
+        };
+        
+        // Add to basket
+        addRequest(request);
+      }
       
       // Clear draft and form
       clearDraft();
@@ -602,11 +655,14 @@ const DonorRequestPage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Request New Donor Code
+        {id ? 'Edit Donor Request' : 'Request New Donor Code'}
       </Typography>
       
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Submit a request for a new donor entity code. Our intelligent system will generate suggestions based on the entity name.
+        {id 
+          ? 'Edit your donor entity code request. Make changes and update your request in the basket.'
+          : 'Submit a request for a new donor entity code. Our intelligent system will generate suggestions based on the entity name.'
+        }
       </Typography>
 
       {hasDraft && (

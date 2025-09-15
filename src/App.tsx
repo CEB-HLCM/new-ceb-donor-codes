@@ -30,6 +30,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="donor-request" element={<DonorRequestPage />} />
+        <Route path="donor-request/:id" element={<DonorRequestPage />} />
         <Route path="donor-update/:code" element={<DonorUpdatePage />} />
         <Route path="donor-remove/:code" element={<DonorRemovePage />} />
         <Route path="donors" element={<DonorsListPage />} />

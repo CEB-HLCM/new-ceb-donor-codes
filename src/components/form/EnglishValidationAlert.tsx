@@ -36,7 +36,9 @@ const EnglishValidationAlert: React.FC<EnglishValidationAlertProps> = ({
   onSuggestionApply,
   showJustificationField = true
 }) => {
-  if (validation.isValid) {
+  // Show alert if there are any issues, regardless of overall validity
+  // In permissive mode, isValid can be true even with warnings
+  if (validation.issues.length === 0) {
     return null;
   }
 
@@ -63,6 +65,7 @@ const EnglishValidationAlert: React.FC<EnglishValidationAlertProps> = ({
         {validation.issues.map((issue, index) => (
           <Typography key={index} variant="body2" sx={{ mb: 0.5 }}>
             <Chip 
+              component="span"
               label={issue.type.toUpperCase()} 
               size="small" 
               color={issue.type === 'error' ? 'error' : issue.type === 'warning' ? 'warning' : 'info'}

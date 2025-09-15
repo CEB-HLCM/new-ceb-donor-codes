@@ -10,6 +10,7 @@ export interface EnglishValidationResult {
     canOverride: boolean;
   }>;
   suggestions?: string[];
+  shouldShowAlert?: boolean;
 }
 
 export interface EnglishValidationConfig {
@@ -44,10 +45,14 @@ export function validateEnglishCharacters(name: string): { isValid: boolean; iss
   if (!englishPattern.test(trimmed)) {
     issues.push('Entity name contains non-English characters. Please use only Latin letters, numbers, and common punctuation.');
     
-    // Generate suggestion by removing non-English characters
-    const englishOnly = trimmed.replace(/[^\w\s\-'.,()&/]/g, '');
-    if (englishOnly.length > 0 && englishOnly !== trimmed) {
-      suggestions.push(`Consider: "${englishOnly}"`);
+    // Generate suggestion by removing accents and normalizing characters
+    const englishEquivalent = trimmed
+      .normalize('NFD') // Normalize to decomposed form (separates base chars from diacritics)
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics/accent marks
+      .replace(/[^\w\s\-'.,()&/]/g, ''); // Remove any remaining non-English characters
+    
+    if (englishEquivalent.length > 0 && englishEquivalent !== trimmed) {
+      suggestions.push(`Consider: "${englishEquivalent}"`);
     }
   }
   
@@ -101,7 +106,7 @@ export function validateEnglishName(name: string, config: EnglishValidationConfi
   if (!charValidation.isValid) {
     charValidation.issues.forEach(issue => {
       const severity = config.strictness === 'strict' ? 'error' : 
-                      config.strictness === 'moderate' ? 'warning' : 'info';
+                      config.strictness === 'moderate' ? 'warning' : 'warning'; // Changed from 'info' to 'warning'
       
       issues.push({
         type: severity,
@@ -123,15 +128,21 @@ export function validateEnglishName(name: string, config: EnglishValidationConfi
   } else if (config.strictness === 'moderate') {
     isValid = !hasErrors;
   } else {
-    // Permissive: only block on severe errors
+    // Permissive: show warnings but don't block - for UI we still want to show the alert
     isValid = !hasErrors;
   }
+  
+  // IMPORTANT: For UI purposes, if there are any issues (errors OR warnings), 
+  // we should show the validation alert. The 'isValid' field just determines 
+  // if it blocks form submission.
+  const shouldShowAlert = issues.length > 0;
 
   return {
     isValid,
     confidence: Math.max(0, confidence),
     issues,
-    suggestions: charValidation.suggestions.length > 0 ? charValidation.suggestions : undefined
+    suggestions: charValidation.suggestions.length > 0 ? charValidation.suggestions : undefined,
+    shouldShowAlert // Add this field to help the UI decide when to show alerts
   };
 }
 
@@ -191,15 +202,11 @@ export function generateEnglishSuggestions(name: string): string[] {
     'nacional': 'national',
     'mundial': 'world',
     
-    // German
-    'organisation': 'organization',
+    // German (only unique terms)
     'gesellschaft': 'society',
     'stiftung': 'foundation',
     'universität': 'university',
-    'zentrum': 'center',
-    'institut': 'institute',
-    'internationale': 'international',
-    'nationale': 'national'
+    'zentrum': 'center'
   };
 
   let suggested = name.toLowerCase();
