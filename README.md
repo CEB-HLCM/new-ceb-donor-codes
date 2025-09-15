@@ -6,7 +6,7 @@ A modern React TypeScript application for managing donor entity codes for UN org
 
 This is a complete rebuild of the existing CEB Donor Codes application using modern React, TypeScript, and Vite. The application provides an intuitive interface for searching existing donor codes and submitting requests for new, updated, or removed donor codes to the CEB FS team.
 
-**Live Demo**: [Original App](https://ceb-donor-codes.netlify.app/)
+**Live Demo**: [Original App](https://ceb-donor-codes.netlify.app/) | [New Enhanced Version](https://new-ceb-donor-codes.netlify.app/)
 
 ## ✅ Current Implementation Status
 
