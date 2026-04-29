@@ -23,6 +23,7 @@ import SearchResults from '../components/search/SearchResults';
 
 const SearchPage: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const {
     query,
     searchType,
@@ -63,7 +64,10 @@ const SearchPage: React.FC = () => {
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+      const isClickInsideInput = searchInputRef.current?.contains(event.target as Node);
+      const isClickInsideSuggestions = suggestionsRef.current?.contains(event.target as Node);
+      
+      if (!isClickInsideInput && !isClickInsideSuggestions) {
         setShowSuggestions(false);
       }
     };
@@ -111,10 +115,10 @@ const SearchPage: React.FC = () => {
       {/* Page Header */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Advanced Donor Search
+          Donor Search &amp; Request
         </Typography>
-        <Typography variant="h6" color="text.secondary">
-          Find donors using intelligent search with multiple algorithms
+        <Typography variant="subtitle1" color="text.secondary">
+          Find donors using intelligent search with multiple algorithms, or request creation of new donors not found in the system
         </Typography>
       </Box>
 
@@ -211,6 +215,7 @@ const SearchPage: React.FC = () => {
               onSuggestionClick={searchFromSuggestion}
               onHistoryClick={searchFromHistory}
               onClose={() => setShowSuggestions(false)}
+              ref={suggestionsRef}
             />
           </Box>
         </CardContent>

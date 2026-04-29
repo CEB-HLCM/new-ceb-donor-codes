@@ -63,7 +63,7 @@ const ChangesSummary: React.FC<ChangesSummaryProps> = ({
   // Name change
   if (proposedChanges.entityName && proposedChanges.entityName !== originalDonor.NAME) {
     changes.push({
-      field: 'Entity Name',
+      field: 'Donor Name',
       from: originalDonor.NAME,
       to: proposedChanges.entityName
     });

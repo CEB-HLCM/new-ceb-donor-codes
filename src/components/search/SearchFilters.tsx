@@ -55,40 +55,56 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
       description: 'Local Government - Any local (sub national) government organisation in either contributor or recipient country.\nOther Public Sector – Any other public sector organization falling within the government'
     },
     'C02': {
-      name: 'NGOs',
+      name: 'NGO - Non-governmental organizations',
       description: 'Non-Governmental Organizations - Independent, non-profit organizations that operate independently of government'
     },
     'C03': {
-      name: 'Foundations',
-      description: 'Private or public foundations that provide funding for charitable, educational, religious, or other activities'
+      name: 'Public Private Partnership',
+      description: 'Collaborative arrangements between public and private sector entities'
     },
-    'C04': {
-      name: 'Academic, Training and Research',
-      description: 'Universities, research institutions, training centers, and academic organizations'
+    'C04A': {
+      name: 'Multilateral - IFI',
+      description: 'International Financial Institutions - Multilateral development banks and financial institutions'
     },
-    'C05': {
-      name: 'Private Sector',
-      description: 'Private companies, corporations, and for-profit business entities'
+    'C04B': {
+      name: 'Multilateral - Global vertical funds',
+      description: 'Global vertical funds and other specialized multilateral funding mechanisms'
     },
-    'C06': {
+    'C04C': {
       name: 'Multilateral - UN organizations excluding pooled funds',
       description: 'United Nations agencies and organizations, excluding pooled funding mechanisms'
     },
-    'C07': {
-      name: 'Multilateral - Others',
+    'C04D': {
+      name: 'Multilateral - UN Inter-agency pooled funds',
+      description: 'United Nations inter-agency pooled funds and collaborative funding arrangements'
+    },
+    'C04E': {
+      name: 'Multilateral - Other',
       description: 'Other multilateral organizations and institutions not covered by other categories'
     },
-    'C08': {
+    'C05': {
+      name: 'Foundation',
+      description: 'Private or public foundations that provide funding for charitable, educational, religious, or other activities'
+    },
+    'C06': {
+      name: 'Private Sector',
+      description: 'Private companies, corporations, and for-profit business entities'
+    },
+    'C07': {
+      name: 'Academic, Training and Research',
+      description: 'Universities, research institutions, training centers, and academic organizations'
+    },
+    'C08A': {
+      name: 'Other - EU',
+      description: 'European Union institutions and bodies'
+    },
+    'C08B': {
       name: 'Other - Other Contributor',
       description: 'Contributors that do not fit into the standard categories above'
     },
     'C09': {
-      name: 'Public Private Partnership',
-      description: 'Collaborative arrangements between public and private sector entities'
-    },
-    'C10': {
-      name: 'Other Categories',
-      description: 'Additional contributor types including Global vertical funds, International Financial Institutions, and European Union'
+      name: 'No contributor',
+      description: 'Entities without a contributor classification'
     }
   };
 

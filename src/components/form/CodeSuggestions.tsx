@@ -45,6 +45,7 @@ interface CodeSuggestionsProps {
   error?: string | null;
   entityName?: string;
   onRegenerate?: () => void;
+  onSuggestionClick?: (index: number) => void;
 }
 
 const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
@@ -58,7 +59,8 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
   isGenerating,
   error,
   entityName,
-  onRegenerate
+  onRegenerate,
+  onSuggestionClick
 }) => {
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return 'success';
@@ -72,7 +74,7 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
     return <ErrorIcon fontSize="small" />;
   };
 
-  const SuggestionOption: React.FC<{ suggestion: GeneratedCodeSuggestion }> = ({ suggestion }) => (
+  const SuggestionOption: React.FC<{ suggestion: GeneratedCodeSuggestion; index: number }> = ({ suggestion, index }) => (
     <Box
       sx={{
         p: 2,
@@ -88,6 +90,7 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
           backgroundColor: 'primary.25'
         }
       }}
+      onClick={() => onSuggestionClick?.(index + 1)}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -169,7 +172,7 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
                     />
                   }
                   label={
-                    <SuggestionOption suggestion={suggestion} />
+                    <SuggestionOption suggestion={suggestion} index={index} />
                   }
                   sx={{ m: 0, alignItems: 'flex-start' }}
                 />
@@ -280,7 +283,7 @@ const CodeSuggestions: React.FC<CodeSuggestionsProps> = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <InfoIcon fontSize="small" color="action" />
               <Typography variant="caption" color="text.secondary">
-                <strong>Confidence scores:</strong> Higher percentages indicate better matches with the entity name and uniqueness.
+                <strong>Confidence scores:</strong> Higher percentages indicate better matches with the donor name and uniqueness.
                 {' '}
                 <strong>Patterns:</strong> Different generation strategies used to create the codes.
               </Typography>

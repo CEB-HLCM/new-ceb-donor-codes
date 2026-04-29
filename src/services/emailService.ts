@@ -306,15 +306,14 @@ export class EmailService {
 
     requests.forEach((req, index) => {
       lines.push(`${index + 1}. ${req.action.toUpperCase()} REQUEST:`);
-      lines.push(`   Entity Name: ${req.entityName}`);
+      lines.push(`   Donor Name: ${req.entityName}`);
       lines.push(`   Code: ${req.customCode || req.suggestedCode}`);
       lines.push(`   Contributor Type: ${req.contributorType}`);
-      lines.push(`   Priority: ${req.priority.toUpperCase()}`);
       lines.push(`   Contact: ${req.contactName} (${req.contactEmail})`);
       lines.push(`   Justification: ${req.justification}`);
       
       if (req.originalDonor && (req.action === 'update' || req.action === 'remove')) {
-        lines.push(`   Original Entity: ${req.originalDonor.name}`);
+        lines.push(`   Original Donor: ${req.originalDonor.name}`);
         lines.push(`   Original Code: ${req.originalDonor.code}`);
       }
       
@@ -395,15 +394,7 @@ export class EmailService {
     return parts.length > 0 ? `Changes: ${parts.join(', ')}` : '';
   }
 
-  /**
-   * Get highest priority from requests for legacy compatibility
-   */
-  private getHighestPriority(requests: DonorRequest[]): string {
-    const priorities = requests.map(r => r.priority);
-    if (priorities.includes('high')) return 'high';
-    if (priorities.includes('normal')) return 'normal';
-    return 'low';
-  }
+
 
   /**
    * Test email connectivity

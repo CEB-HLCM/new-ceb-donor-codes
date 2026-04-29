@@ -144,7 +144,7 @@ const EnglishValidationAlert: React.FC<EnglishValidationAlertProps> = ({
           fullWidth
           value={justification}
           onChange={(e) => onJustificationChange(e.target.value)}
-          helperText="Please explain why this entity name cannot be provided in English (e.g., official name, legal requirement, etc.)"
+          helperText="Please explain why this donor name cannot be provided in English (e.g., official name, legal requirement, etc.)"
           placeholder="Example: This is the official legal name of the organization as registered in France..."
           sx={{ mt: 1 }}
         />

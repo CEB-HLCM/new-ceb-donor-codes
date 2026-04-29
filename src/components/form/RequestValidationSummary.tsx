@@ -69,24 +69,24 @@ const RequestValidationSummary: React.FC<RequestValidationSummaryProps> = ({
     requests.forEach(request => {
       const issues: ValidationIssue[] = [];
 
-      // 1. Entity Name Validation
+      // 1. Donor Name Validation
       if (!request.entityName.trim()) {
         issues.push({
           type: 'error',
-          message: 'Entity name is required',
+          message: 'Donor name is required',
           field: 'entityName'
         });
       } else if (request.entityName.length < 3) {
         issues.push({
           type: 'warning',
-          message: 'Entity name is very short',
+          message: 'Donor name is very short',
           field: 'entityName',
           suggestion: 'Consider using the full organization name'
         });
       } else if (!/^[a-zA-Z0-9\s\-\(\)\/&\.]+$/.test(request.entityName)) {
         issues.push({
           type: 'warning',
-          message: 'Entity name contains special characters',
+          message: 'Donor name contains special characters',
           field: 'entityName',
           suggestion: 'Ensure special characters are appropriate for an organization name'
         });
@@ -192,20 +192,7 @@ const RequestValidationSummary: React.FC<RequestValidationSummaryProps> = ({
       }
 
       // 4. Justification Validation
-      if (!request.justification.trim()) {
-        issues.push({
-          type: 'error',
-          message: 'Justification is required',
-          field: 'justification'
-        });
-      } else if (request.justification.length < 20) {
-        issues.push({
-          type: 'warning',
-          message: 'Justification is quite brief',
-          field: 'justification',
-          suggestion: 'Provide more detailed reasoning for the request'
-        });
-      }
+      // Justification is now optional - no validation required
 
       // 5. Action-Specific Validation
       if (request.action === 'update' || request.action === 'remove') {

@@ -46,7 +46,7 @@ export class CodeGenerationService {
     } = options;
 
     if (!entityName?.trim()) {
-      throw new Error('Entity name is required for code generation');
+      throw new Error('Donor name is required for code generation');
     }
 
     const suggestions: GeneratedCodeSuggestion[] = [];
@@ -83,7 +83,7 @@ export class CodeGenerationService {
       if (fallbackCodes.length > 0) {
         sortedSuggestions.push(...fallbackCodes);
       } else {
-        throw new Error(`Could not generate any valid codes for "${entityName}". Try a different entity name or use custom code.`);
+        throw new Error(`Could not generate any valid codes for "${entityName}". Try a different donor name or use custom code.`);
       }
     }
 
@@ -262,7 +262,7 @@ export class CodeGenerationService {
     // Explain the generation strategy
     switch (strategy) {
       case 'initials':
-        reasons.push('Generated from entity name initials');
+        reasons.push('Generated from donor name initials');
         break;
       case 'abbreviation':
         reasons.push('Created using name abbreviation technique');
@@ -327,7 +327,7 @@ export class CodeGenerationService {
             fallbacks.push({
               code,
               confidence: validation.isUnique ? 60 : 40,
-              reasoning: `Fallback: First ${len} letters of entity name`,
+              reasoning: `Fallback: First ${len} letters of donor name`,
               isUnique: validation.isUnique,
               pattern: { type: 'abbreviation', description: 'Name abbreviation fallback', example: code }
             });

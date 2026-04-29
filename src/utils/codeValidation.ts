@@ -21,8 +21,8 @@ export function validateCodeFormat(code: string): { isValid: boolean; issues: st
     return { isValid: false, issues };
   }
 
-  if (trimmed.length < 2) {
-    issues.push('Code must be at least 2 characters long');
+  if (trimmed.length < 3) {
+    issues.push('Code must be at least 3 characters long');
   }
 
   if (trimmed.length > 10) {

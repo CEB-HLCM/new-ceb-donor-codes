@@ -8,6 +8,7 @@ import {
   Divider,
   IconButton,
   Box,
+  Typography,
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -30,8 +31,28 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isAuthenticated = fals
   const location = useLocation();
 
   const menuItems = [
-    { text: 'Search', icon: <SearchIcon />, path: '/search' },
-    { text: 'Add Donor', icon: <AddIcon />, path: '/donor-request' },
+    { 
+      text: 'Donor Search & Request', 
+      icon: (
+        <Box sx={{ position: 'relative', width: 24, height: 24 }}>
+          <SearchIcon />
+          <Typography 
+            sx={{ 
+              position: 'absolute', 
+              top: -2, 
+              right: -4, 
+              fontSize: '12px', 
+              fontWeight: 'bold',
+              lineHeight: 1,
+            }}
+          >
+            +
+          </Typography>
+        </Box>
+      ), 
+      path: '/search' 
+    },
+
     { text: 'Donors List', icon: <LocationCityIcon />, path: '/donors' },
     { text: 'Requests', icon: <ListAltIcon />, path: '/requests-list' },
     { text: 'Help', icon: <HelpIcon />, path: '/help' },

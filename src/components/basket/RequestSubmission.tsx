@@ -29,6 +29,7 @@ import {
 import { useBasket } from '../../hooks/useBasket';
 import { useContactPersistence } from '../../hooks/useContactPersistence';
 import { emailService } from '../../services/emailService';
+import { historyService } from '../../services/historyService';
 import RequestValidationSummary from '../form/RequestValidationSummary';
 import type { EmailSubmissionResult } from '../../services/emailService';
 
@@ -101,6 +102,9 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
       
       if (result.success) {
         setStep('success');
+        
+        // Add to history
+        historyService.addToHistory(submission, 'submitted', result);
         
         // Clear basket after successful submission
         setTimeout(() => {
@@ -373,7 +377,7 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({
                     req.justification
                   ].map(cell => `"${cell}"`).join(',')).join('\n');
                   
-                  const headers = ['Action', 'Entity Name', 'Code', 'Type', 'Contact Name', 'Contact Email', 'Justification'].map(h => `"${h}"`).join(',');
+                  const headers = ['Action', 'Donor Name', 'Code', 'Type', 'Contact Name', 'Contact Email', 'Justification'].map(h => `"${h}"`).join(',');
                   const fullCsv = headers + '\n' + csvContent;
                   
                   const blob = new Blob([fullCsv], { type: 'text/csv' });

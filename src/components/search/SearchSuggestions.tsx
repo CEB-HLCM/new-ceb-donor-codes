@@ -32,7 +32,7 @@ interface SearchSuggestionsProps {
   onClose: () => void;
 }
 
-const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
+const SearchSuggestions = React.forwardRef<HTMLDivElement, SearchSuggestionsProps>(({
   suggestions,
   searchHistory,
   query,
@@ -40,7 +40,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
   onSuggestionClick,
   onHistoryClick,
   onClose,
-}) => {
+}, ref) => {
   if (!show || (suggestions.length === 0 && searchHistory.length === 0)) {
     return null;
   }
@@ -85,6 +85,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
 
   return (
     <Paper
+      ref={ref}
       elevation={8}
       sx={{
         position: 'absolute',
@@ -206,6 +207,6 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
       )}
     </Paper>
   );
-};
+});
 
 export default SearchSuggestions;

@@ -73,6 +73,9 @@ interface RequestBasketProps {
   showAddButton?: boolean;
   compact?: boolean;
   onRequestEdit?: (request: DonorRequest) => void;
+  showSubmitButton?: boolean;
+  showSubmissionDialog?: boolean;
+  onShowSubmissionDialogChange?: (value: boolean) => void;
 }
 
 // Sortable request row component
@@ -84,7 +87,6 @@ interface SortableRequestRowProps {
   getActionIcon: (action: string) => React.ReactNode;
   getActionColor: (action: string) => string;
   getStatusColor: (status: string) => string;
-  getPriorityColor: (priority: string) => string;
   compact?: boolean;
   isDragging?: boolean;
 }
@@ -97,7 +99,6 @@ const SortableRequestRow: React.FC<SortableRequestRowProps> = ({
   getActionIcon,
   getActionColor,
   getStatusColor,
-  getPriorityColor,
   compact = false,
   isDragging = false
 }) => {
@@ -183,12 +184,7 @@ const SortableRequestRow: React.FC<SortableRequestRowProps> = ({
         />
       </TableCell>
       <TableCell>
-        <Chip
-          label={request.priority}
-          size="small"
-          color={getPriorityColor(request.priority) as any}
-          variant="outlined"
-        />
+
       </TableCell>
       <TableCell>
         <Typography variant="body2">
@@ -210,7 +206,10 @@ const SortableRequestRow: React.FC<SortableRequestRowProps> = ({
 const RequestBasket: React.FC<RequestBasketProps> = ({
   showAddButton = true,
   compact = false,
-  onRequestEdit
+  onRequestEdit,
+  showSubmitButton = true,
+  showSubmissionDialog: externalShowSubmissionDialog,
+  onShowSubmissionDialogChange
 }) => {
   const navigate = useNavigate();
   const {
@@ -227,7 +226,8 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRequest, setSelectedRequest] = useState<DonorRequest | null>(null);
-  const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
+  const [internalShowSubmissionDialog, setInternalShowSubmissionDialog] = useState(false);
+  const showSubmissionDialog = externalShowSubmissionDialog !== undefined ? externalShowSubmissionDialog : internalShowSubmissionDialog;
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Drag and drop sensors
@@ -386,14 +386,7 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'error';
-      case 'normal': return 'primary';
-      case 'low': return 'default';
-      default: return 'default';
-    }
-  };
+
 
   if (basket.requests.length === 0) {
     return (
@@ -461,16 +454,18 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
               Export CSV
             </Button>
 
-            <Button
-              size="small"
-              variant="contained"
-              color="success"
-              onClick={() => setShowSubmissionDialog(true)}
-              startIcon={<EmailIcon />}
-              disabled={basket.requests.length === 0}
-            >
-              Submit All ({basket.totalCount})
-            </Button>
+            {showSubmitButton && (
+              <Button
+                size="small"
+                variant="contained"
+                color="success"
+                onClick={() => onShowSubmissionDialogChange ? onShowSubmissionDialogChange(true) : setInternalShowSubmissionDialog(true)}
+                startIcon={<EmailIcon />}
+                disabled={basket.requests.length === 0}
+              >
+                Submit All ({basket.totalCount})
+              </Button>
+            )}
             
             {showAddButton && (
               <Button
@@ -537,10 +532,9 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
                     />
                   </TableCell>
                   <TableCell>Action</TableCell>
-                  <TableCell>Entity Name</TableCell>
+                  <TableCell>Donor Name</TableCell>
                   <TableCell>Code</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell>Priority</TableCell>
                   <TableCell>Created</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -560,7 +554,6 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
                       getActionIcon={getActionIcon}
                       getActionColor={getActionColor}
                       getStatusColor={getStatusColor}
-                      getPriorityColor={getPriorityColor}
                       compact={compact}
                       isDragging={activeId === request.id}
                     />
@@ -650,9 +643,9 @@ const RequestBasket: React.FC<RequestBasketProps> = ({
       {/* Submission Dialog */}
       <RequestSubmission
         open={showSubmissionDialog}
-        onClose={() => setShowSubmissionDialog(false)}
+        onClose={() => onShowSubmissionDialogChange ? onShowSubmissionDialogChange(false) : setInternalShowSubmissionDialog(false)}
         onSubmissionComplete={(success, submissionId) => {
-          setShowSubmissionDialog(false);
+          onShowSubmissionDialogChange ? onShowSubmissionDialogChange(false) : setInternalShowSubmissionDialog(false);
         }}
       />
     </Card>

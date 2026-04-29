@@ -19,6 +19,7 @@ import {
   Button,
   Pagination,
 } from '@mui/material';
+import { PersonAdd as PersonAddIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import type { SearchResult, SearchStats } from '../../services/searchService';
 import type { DonorWithType } from '../../types/donor';
@@ -149,6 +150,37 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             Export Results
           </Button>
         )}
+      </Box>
+
+      {/* Donor Creation Request */}
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 2,
+          p: 2,
+          border: '1px solid',
+          borderColor: 'info.main',
+          borderRadius: 1,
+          backgroundColor: (theme) => theme.palette.mode === 'dark' 
+            ? 'rgba(33, 150, 243, 0.05)'
+            : 'rgba(25, 118, 210, 0.05)'
+        }}
+      >
+        <Typography variant="body2" color="text.primary">
+          If you're sure the donor you're looking for doesn't exist, you can request its creation.
+        </Typography>
+        <Button
+          component={Link}
+          to={`/donor-request?name=${encodeURIComponent(stats.query || '')}`}
+          variant="contained"
+          color="primary"
+          size="small"
+          startIcon={<PersonAddIcon />}
+        >
+          Request Donor Code Creation
+        </Button>
       </Box>
 
       {/* Results Table */}

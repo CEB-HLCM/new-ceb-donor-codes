@@ -12,7 +12,6 @@ export interface DonorRequest {
   justification: string;
   contactEmail: string;
   contactName: string;
-  priority: 'low' | 'normal' | 'high';
   additionalNotes?: string;
   createdAt: Date;
   status: 'draft' | 'pending' | 'submitted' | 'approved' | 'rejected';
@@ -83,7 +82,6 @@ export interface DonorRequestForm {
   justification: string;
   contactEmail: string;
   contactName: string;
-  priority: 'low' | 'normal' | 'high';
   additionalNotes: string;
 }
 

@@ -27,7 +27,7 @@ function App() {
           />
         }
       >
-        <Route index element={<HomePage />} />
+        <Route index element={<SearchPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="donor-request" element={<DonorRequestPage />} />
         <Route path="donor-request/:id" element={<DonorRequestPage />} />

@@ -29,7 +29,8 @@ import {
   Delete as DeleteIcon,
   Send as SendIcon,
   Download as DownloadIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Email as EmailIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,6 +45,7 @@ const RequestsListPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
 
   // Get current requests from basket
   const requests = basket.requests;
@@ -93,14 +95,7 @@ const RequestsListPage: React.FC = () => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'error';
-      case 'normal': return 'primary';
-      case 'low': return 'default';
-      default: return 'default';
-    }
-  };
+
 
   const draftCount = stats.byStatus.draft;
   const pendingCount = stats.byStatus.pending;
@@ -129,60 +124,33 @@ const RequestsListPage: React.FC = () => {
           </Button>
           <Button
             variant="contained"
+            color="success"
+            startIcon={<EmailIcon />}
+            onClick={() => setShowSubmissionDialog(true)}
+            disabled={basket.requests.length === 0}
+          >
+            Submit All ({basket.totalCount})
+          </Button>
+          <Button
+            variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => navigate('/donor-request')}
+            onClick={() => navigate('/search')}
           >
             New Request
           </Button>
         </Stack>
       </Box>
 
-      {/* Summary Cards */}
-      <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-        <Card sx={{ flex: 1 }}>
-          <CardContent>
-            <Typography variant="h6" color="text.secondary">
-              Draft Requests
-            </Typography>
-            <Typography variant="h4" color="primary">
-              {draftCount}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ flex: 1 }}>
-          <CardContent>
-            <Typography variant="h6" color="text.secondary">
-              Pending Review
-            </Typography>
-            <Typography variant="h4" color="warning.main">
-              {pendingCount}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ flex: 1 }}>
-          <CardContent>
-            <Typography variant="h6" color="text.secondary">
-              Submitted
-            </Typography>
-            <Typography variant="h4" color="info.main">
-              {submittedCount}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ flex: 1 }}>
-          <CardContent>
-            <Typography variant="h6" color="text.secondary">
-              Total Requests
-            </Typography>
-            <Typography variant="h4">
-              {requests.length}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Stack>
+
 
       {/* Enhanced basket component */}
-      <RequestBasket showAddButton={true} compact={false} />
+      <RequestBasket 
+        showAddButton={false} 
+        showSubmitButton={false}
+        showSubmissionDialog={showSubmissionDialog}
+        onShowSubmissionDialogChange={setShowSubmissionDialog}
+        compact={false} 
+      />
 
       {/* Request History */}
       {showHistory && (

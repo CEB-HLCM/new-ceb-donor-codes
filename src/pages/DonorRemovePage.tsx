@@ -44,11 +44,10 @@ import type { DonorData, DonorRequest } from '../types/request';
 const removalRequestSchema = z.object({
   contactName: z.string().min(2, 'Contact name is required'),
   contactEmail: z.string().email('Valid email is required'),
-  priority: z.enum(['low', 'normal', 'high']),
   removalReason: z.enum(['duplicate', 'obsolete', 'merged', 'incorrect', 'other'], {
     message: 'Please select a reason for removal' 
   }),
-  removalJustification: z.string().min(10, 'Detailed justification is required (minimum 10 characters)'),
+  removalJustification: z.string(),
   additionalNotes: z.string().optional()
 });
 
@@ -105,7 +104,6 @@ const DonorRemovePage: React.FC = () => {
     defaultValues: {
       contactName: '',
       contactEmail: '',
-      priority: 'normal' as const,
       removalReason: 'duplicate' as const,
       removalJustification: '',
       additionalNotes: ''
@@ -116,7 +114,6 @@ const DonorRemovePage: React.FC = () => {
   // Watch form values
   const removalReason = watch('removalReason');
   const removalJustification = watch('removalJustification');
-  const priority = watch('priority');
 
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
@@ -185,7 +182,6 @@ const DonorRemovePage: React.FC = () => {
       justification: data.removalJustification,
       contactEmail: data.contactEmail,
       contactName: data.contactName,
-      priority: data.priority,
       additionalNotes: data.additionalNotes || '',
       createdAt: new Date(),
       status: 'draft',
@@ -426,20 +422,7 @@ const DonorRemovePage: React.FC = () => {
                         </Grid>
 
                         <Grid size={{ xs: 12, md: 6 }}>
-                          <Controller
-                            name="priority"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth>
-                                <InputLabel>Priority</InputLabel>
-                                <Select {...field} label="Priority">
-                                  <MenuItem value="low">Low</MenuItem>
-                                  <MenuItem value="normal">Normal</MenuItem>
-                                  <MenuItem value="high">High</MenuItem>
-                                </Select>
-                              </FormControl>
-                            )}
-                          />
+
                         </Grid>
                       </Grid>
 
@@ -543,12 +526,7 @@ const DonorRemovePage: React.FC = () => {
                             </Grid>
                             
                             <Grid size={{ xs: 12, md: 6 }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Priority:
-                              </Typography>
-                              <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
-                                {priority}
-                              </Typography>
+
                             </Grid>
                           </Grid>
                         </CardContent>

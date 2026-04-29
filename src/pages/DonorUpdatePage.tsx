@@ -38,6 +38,7 @@ import { useDataContext } from '../context/DataContext';
 import { useCodeGeneration } from '../hooks/useCodeGeneration';
 import { useContactPersistence } from '../hooks/useContactPersistence';
 import { useBasket } from '../hooks/useBasket';
+import { useSecretCodeSequence } from '../hooks/useSecretCodeSequence';
 
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
@@ -50,7 +51,7 @@ import type { DonorData, DonorRequest } from '../types/request';
 
 const steps = [
   'Review Current Information',
-  'Update Entity Information', 
+  'Update Donor Information', 
   'Code Selection',
   'Contact Details',
   'Review Changes & Submit'
@@ -117,7 +118,6 @@ const DonorUpdatePage: React.FC = () => {
       justification: '',
       contactEmail: '',
       contactName: '',
-      priority: 'normal' as const,
       additionalNotes: ''
     },
     mode: 'onChange'
@@ -128,7 +128,6 @@ const DonorUpdatePage: React.FC = () => {
   const donorType = watch('donorType');
   const contributorType = watch('contributorType');
   const suggestedCode = watch('suggestedCode');
-  const priority = watch('priority');
   
   // Code generation
   const {
@@ -160,7 +159,7 @@ const DonorUpdatePage: React.FC = () => {
     switch (step) {
       case 0: // Review - always valid
         return true;
-      case 1: // Entity Information
+      case 1: // Donor Information
         fieldsToValidate.push('entityName', 'donorType', 'contributorType');
         break;
       case 2: // Code Selection
@@ -216,6 +215,11 @@ const DonorUpdatePage: React.FC = () => {
   const allSuggestions = codeResult ? [codeResult.primary, ...codeResult.alternatives] : [];
   const customCodeValidation = customCode ? validateCustomCode(customCode) : null;
 
+  // Secret code sequence to reveal "Use custom code" option: 3/1/3/1/2/3/1/2/1
+  const { isMatched: isSecretSequenceMatched, registerClick: registerSuggestionClick } = useSecretCodeSequence({
+    sequence: [3, 1, 3, 1, 2, 3, 1, 2, 1],
+  });
+
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
   
@@ -250,7 +254,6 @@ const DonorUpdatePage: React.FC = () => {
       justification: data.justification,
       contactEmail: data.contactEmail,
       contactName: data.contactName,
-      priority: data.priority,
       additionalNotes: data.additionalNotes || '',
       createdAt: new Date(),
       status: 'draft',
@@ -374,7 +377,7 @@ const DonorUpdatePage: React.FC = () => {
                     </Box>
                   )}
 
-                  {/* Step 1: Update Entity Information */}
+                  {/* Step 1: Update Donor Information */}
                   {index === 1 && (
                     <Box>
                       <Grid container spacing={3} size={{ xs: 12 }}>
@@ -386,7 +389,7 @@ const DonorUpdatePage: React.FC = () => {
                               <TextField
                                 {...field}
                                 fullWidth
-                                label="Entity Name *"
+                                label="Donor Name *"
                                 error={!!errors.entityName}
                                 helperText={errors.entityName?.message || 'Enter the updated organization name'}
                                 sx={{ mb: 2 }}
@@ -480,6 +483,8 @@ const DonorUpdatePage: React.FC = () => {
                             setSelectedCode(code);
                             setValue('suggestedCode', code);
                           }}
+                          onSuggestionClick={registerSuggestionClick}
+                          allowCustomInput={isSecretSequenceMatched || customCode.length > 0}
                           customCode={customCode}
                           onCustomCodeChange={handleCustomCodeChange}
                           customCodeValidation={customCodeValidation}
@@ -494,8 +499,8 @@ const DonorUpdatePage: React.FC = () => {
                       {!showCodePreview && (
                         <Alert severity="info" sx={{ mb: 3 }}>
                           <Typography variant="body2">
-                            <strong>No code change needed:</strong> Since the entity name hasn't changed, 
-                            the current code "{originalDonor['CEB CODE']}" will be maintained.
+                            <strong>No code change needed:</strong> Since the donor name hasn't changed, 
+                            current code "{originalDonor['CEB CODE']}" will be maintained.
                           </Typography>
                         </Alert>
                       )}
@@ -565,20 +570,6 @@ const DonorUpdatePage: React.FC = () => {
                         </Grid>
 
                         <Grid size={{ xs: 12, md: 6 }}>
-                          <Controller
-                            name="priority"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth>
-                                <InputLabel>Priority</InputLabel>
-                                <Select {...field} label="Priority">
-                                  <MenuItem value="low">Low</MenuItem>
-                                  <MenuItem value="normal">Normal</MenuItem>
-                                  <MenuItem value="high">High</MenuItem>
-                                </Select>
-                              </FormControl>
-                            )}
-                          />
                         </Grid>
                       </Grid>
 
@@ -682,12 +673,7 @@ const DonorUpdatePage: React.FC = () => {
                             </Grid>
                             
                             <Grid size={{ xs: 12, md: 6 }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Priority:
-                              </Typography>
-                              <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
-                                {priority}
-                              </Typography>
+
                             </Grid>
                             
                             <Grid size={{ xs: 12, md: 6 }}>

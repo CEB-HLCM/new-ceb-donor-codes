@@ -6,8 +6,8 @@ import { validateEnglishName, getDefaultEnglishValidationConfig } from '../utils
 export const donorRequestSchema = z.object({
   entityName: z
     .string()
-    .min(2, 'Entity name must be at least 2 characters')
-    .max(200, 'Entity name cannot exceed 200 characters')
+    .min(2, 'Donor name must be at least 2 characters')
+    .max(200, 'Donor name cannot exceed 200 characters')
     .refine(
       (val) => {
         // Basic character validation (keep existing for backward compatibility)
@@ -16,7 +16,7 @@ export const donorRequestSchema = z.object({
         return hasValidChars && hasContent;
       },
       { 
-        message: 'Entity name contains invalid characters. Please use standard letters, numbers, spaces, and common punctuation only.' 
+        message: 'Donor name contains invalid characters. Please use standard letters, numbers, spaces, and common punctuation only.' 
       }
     )
     .refine(
@@ -38,7 +38,7 @@ export const donorRequestSchema = z.object({
         return {
           message: errorIssues.length > 0 
             ? errorIssues[0].message 
-            : 'Entity name may not be in English - please verify or provide justification'
+            : 'Donor name may not be in English - please verify or provide justification'
         };
       }
     ),
@@ -69,8 +69,8 @@ export const donorRequestSchema = z.object({
 
   justification: z
     .string()
-    .min(10, 'Justification must be at least 10 characters')
-    .max(500, 'Justification cannot exceed 500 characters'),
+    .max(500, 'Justification cannot exceed 500 characters')
+    .optional(),
 
   contactEmail: z
     .string()
@@ -91,11 +91,6 @@ export const donorRequestSchema = z.object({
         message: 'Contact name contains invalid characters. Please use standard letters, numbers, spaces, and common punctuation only.' 
       }
     ),
-
-  priority: z
-    .enum(['low', 'normal', 'high'], {
-      message: 'Please select a priority level'
-    }),
 
   additionalNotes: z
     .string()
@@ -126,7 +121,6 @@ export const fieldSchemas = {
   justification: donorRequestSchema.shape.justification,
   contactEmail: donorRequestSchema.shape.contactEmail,
   contactName: donorRequestSchema.shape.contactName,
-  priority: donorRequestSchema.shape.priority,
   additionalNotes: donorRequestSchema.shape.additionalNotes,
   nonEnglishJustification: donorRequestSchema.shape.nonEnglishJustification,
   acknowledgeNonEnglish: donorRequestSchema.shape.acknowledgeNonEnglish

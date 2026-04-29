@@ -82,7 +82,7 @@ export function useCodeGeneration(options: UseCodeGenerationOptions = {}): UseCo
     generationOptions: Partial<CodeGenerationOptions> = {}
   ) => {
     if (!entityName?.trim()) {
-      setError('Entity name is required');
+      setError('Donor name is required');
       setResult(null);
       return;
     }

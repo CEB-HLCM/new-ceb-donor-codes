@@ -28,14 +28,14 @@ export function validateEnglishCharacters(name: string): { isValid: boolean; iss
   const suggestions: string[] = [];
   
   if (!name || typeof name !== 'string') {
-    issues.push('Entity name is required');
+    issues.push('Donor name is required');
     return { isValid: false, issues, suggestions };
   }
 
   const trimmed = name.trim();
   
   if (trimmed.length === 0) {
-    issues.push('Entity name cannot be empty');
+    issues.push('Donor name cannot be empty');
     return { isValid: false, issues, suggestions };
   }
 
@@ -43,7 +43,7 @@ export function validateEnglishCharacters(name: string): { isValid: boolean; iss
   const englishPattern = /^[A-Za-z0-9\s\-'.,()&/]+$/;
   
   if (!englishPattern.test(trimmed)) {
-    issues.push('Entity name contains non-English characters. Please use only Latin letters, numbers, and common punctuation.');
+    issues.push('Donor name contains non-English characters. Please use only Latin letters, numbers, and common punctuation.');
     
     // Generate suggestion by removing accents and normalizing characters
     const englishEquivalent = trimmed
@@ -61,7 +61,7 @@ export function validateEnglishCharacters(name: string): { isValid: boolean; iss
   const letterRatio = letters / trimmed.length;
   
   if (letterRatio < 0.5) {
-    issues.push('Entity name should be primarily composed of letters');
+    issues.push('Donor name should be primarily composed of letters');
   }
   
   // Check for excessive punctuation

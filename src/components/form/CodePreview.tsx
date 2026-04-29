@@ -84,7 +84,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
       <Card variant="outlined">
         <CardContent>
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-            Enter an entity name to generate code suggestions
+            Enter a donor name to generate code suggestions
           </Typography>
         </CardContent>
       </Card>

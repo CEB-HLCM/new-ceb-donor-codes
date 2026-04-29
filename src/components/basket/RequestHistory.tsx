@@ -31,90 +31,89 @@ import {
   Schedule as PendingIcon,
   Restore as RestoreIcon,
   Delete as DeleteIcon,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  AccessTime as WaitingIcon
 } from '@mui/icons-material';
 
 import type { RequestSubmission } from '../../types/request';
+import { historyService } from '../../services/historyService';
+import { fetchDonors } from '../../services/dataService';
 
 interface RequestHistoryProps {
   onRestoreSubmission?: (submission: RequestSubmission) => void;
 }
 
-const HISTORY_STORAGE_KEY = 'ceb-donor-request-history';
-const HISTORY_EXPIRY_DAYS = 30; // Keep history for 30 days
-
 interface HistoryEntry extends RequestSubmission {
-  status: 'submitted' | 'confirmed' | 'failed';
+  status: 'submitted' | 'completed' | 'failed';
   submissionResult?: any;
   expiryDate: number;
 }
+
 
 const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [selectedSubmission, setSelectedSubmission] = useState<HistoryEntry | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Load history from localStorage
-  useEffect(() => {
+  // Load history from historyService
+  const loadHistory = () => {
+    const loadedHistory = historyService.getHistory();
+    setHistory(loadedHistory);
+  };
+
+  // Check and update submission statuses based on donor list
+  const checkAndUpdateStatuses = async () => {
     try {
-      const storedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
-      if (storedHistory) {
-        const parsed: HistoryEntry[] = JSON.parse(storedHistory);
-        
-        // Filter out expired entries
-        const now = Date.now();
-        const validHistory = parsed.filter(entry => entry.expiryDate > now);
-        
-        // Convert date strings back to Date objects
-        const processedHistory = validHistory.map(entry => ({
-          ...entry,
-          submittedAt: new Date(entry.submittedAt),
-          requests: entry.requests.map(req => ({
-            ...req,
-            createdAt: new Date(req.createdAt)
-          }))
-        }));
-        
-        setHistory(processedHistory);
-        
-        // Clean up expired entries
-        if (validHistory.length !== parsed.length) {
-          saveHistory(processedHistory);
+      const response = await fetchDonors();
+      if (!response.success || !response.data) {
+        console.error('Failed to fetch donors for status check');
+        return;
+      }
+
+      const donors = response.data;
+      const donorCodes = new Set(
+        donors
+          .map(d => d['CEB CODE'])
+          .filter((code): code is string => !!code)
+      );
+
+      const currentHistory = historyService.getHistory();
+      let hasUpdates = false;
+
+      for (const entry of currentHistory) {
+        if (entry.status !== 'submitted' && entry.status !== 'confirmed') continue;
+
+        const allCodesFound = entry.requests.every(req => {
+          const code = req.customCode || req.suggestedCode;
+          return code && donorCodes.has(code);
+        });
+
+        if (allCodesFound) {
+          historyService.updateSubmissionStatus(entry.submissionId, 'completed');
+          hasUpdates = true;
         }
       }
+
+      if (hasUpdates) {
+        loadHistory();
+      }
     } catch (error) {
-      console.error('Failed to load submission history:', error);
+      console.error('Error checking submission statuses:', error);
     }
+  };
+
+  // Initial load and refresh on key change
+  useEffect(() => {
+    loadHistory();
+    checkAndUpdateStatuses();
+  }, [refreshKey]);
+
+  // Trigger refresh when component mounts (in case new entries were added elsewhere)
+  useEffect(() => {
+    setRefreshKey(prev => prev + 1);
   }, []);
-
-  // Save history to localStorage
-  const saveHistory = (historyData: HistoryEntry[]) => {
-    try {
-      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyData));
-    } catch (error) {
-      console.error('Failed to save submission history:', error);
-    }
-  };
-
-  // Add new submission to history
-  const addToHistory = (submission: RequestSubmission, status: HistoryEntry['status'], result?: any) => {
-    const historyEntry: HistoryEntry = {
-      ...submission,
-      status,
-      submissionResult: result,
-      expiryDate: Date.now() + (HISTORY_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
-    };
-
-    const updatedHistory = [historyEntry, ...history].slice(0, 50); // Keep max 50 entries
-    setHistory(updatedHistory);
-    saveHistory(updatedHistory);
-  };
-
-  // Expose method to add submissions (would be called from parent components)
-  React.useImperativeHandle(null, () => ({
-    addToHistory
-  }));
 
   const handleToggleExpand = (submissionId: string) => {
     const newExpanded = new Set(expandedItems);
@@ -138,14 +137,17 @@ const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) 
   };
 
   const handleClearHistory = () => {
+    historyService.clearHistory();
     setHistory([]);
-    localStorage.removeItem(HISTORY_STORAGE_KEY);
   };
+
+
 
   const getStatusIcon = (status: HistoryEntry['status']) => {
     switch (status) {
-      case 'submitted': return <PendingIcon color="info" />;
-      case 'confirmed': return <SuccessIcon color="success" />;
+      case 'submitted':
+      case 'confirmed': return <WaitingIcon color="warning" />;
+      case 'completed': return <SuccessIcon color="success" />;
       case 'failed': return <ErrorIcon color="error" />;
       default: return <SendIcon />;
     }
@@ -153,10 +155,21 @@ const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) 
 
   const getStatusColor = (status: HistoryEntry['status']) => {
     switch (status) {
-      case 'submitted': return 'info';
-      case 'confirmed': return 'success';
+      case 'submitted':
+      case 'confirmed': return 'warning';
+      case 'completed': return 'success';
       case 'failed': return 'error';
       default: return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: HistoryEntry['status']) => {
+    switch (status) {
+      case 'submitted':
+      case 'confirmed': return 'Sent';
+      case 'completed': return 'Completed';
+      case 'failed': return 'Failed';
+      default: return status;
     }
   };
 
@@ -216,7 +229,7 @@ const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) 
                           {entry.submissionId}
                         </Typography>
                         <Chip
-                          label={entry.status}
+                          label={getStatusLabel(entry.status)}
                           size="small"
                           color={getStatusColor(entry.status) as any}
                         />
@@ -227,6 +240,7 @@ const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) 
                         />
                       </Stack>
                     }
+                    secondaryTypographyProps={{ component: 'div' }}
                     secondary={
                       <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
                         <Typography variant="caption">
@@ -308,7 +322,7 @@ const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) 
 
           {history.length > 10 && (
             <Alert severity="info" sx={{ mt: 2 }}>
-              Showing recent submissions. History is automatically cleaned after {HISTORY_EXPIRY_DAYS} days.
+              Showing recent submissions. History is automatically cleaned after 6 months.
             </Alert>
           )}
         </CardContent>
@@ -333,7 +347,7 @@ const RequestHistory: React.FC<RequestHistoryProps> = ({ onRestoreSubmission }) 
                 </Typography>
                 <Chip
                   icon={getStatusIcon(selectedSubmission.status)}
-                  label={selectedSubmission.status}
+                  label={getStatusLabel(selectedSubmission.status)}
                   color={getStatusColor(selectedSubmission.status) as any}
                 />
               </Box>

@@ -231,7 +231,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   }, [setQuery]);
 
   const searchFromSuggestion = useCallback((suggestion: SearchSuggestion) => {
-    setQuery(suggestion.text);
+    setQueryState(suggestion.text);
     setShowSuggestions(false);
     
     // Adjust search field based on suggestion type
@@ -240,7 +240,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     } else if (suggestion.type === 'code') {
       setSearchField(SearchField.CEB_CODE);
     }
-  }, [setQuery]);
+  }, []);
 
   return {
     // Search state

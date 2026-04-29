@@ -116,11 +116,11 @@ const RemovalJustification: React.FC<RemovalJustificationProps> = ({
           fullWidth
           multiline
           rows={4}
-          label="Detailed Justification *"
+          label="Detailed Justification"
           placeholder="Please provide a detailed explanation for why this donor should be removed from the system..."
           value={removalJustification}
           onChange={(e) => onJustificationChange(e.target.value)}
-          required
+
           helperText="Provide specific details to help the CEB IT team understand and process this removal request"
           sx={{ mb: 3 }}
         />

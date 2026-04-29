@@ -113,7 +113,7 @@ export class BasketService {
    * Add request to basket
    */
   addRequest(request: DonorRequest): void {
-    // Check for duplicates (same entity name and action)
+    // Check for duplicates (same donor name and action)
     const existingIndex = this.basket.requests.findIndex(
       req => req.entityName === request.entityName && req.action === request.action
     );
@@ -268,7 +268,6 @@ export class BasketService {
     total: number;
     byAction: { new: number; update: number; remove: number };
     byStatus: { draft: number; pending: number; submitted: number; approved: number; rejected: number };
-    byPriority: { low: number; normal: number; high: number };
   } {
     const requests = this.basket.requests;
     
@@ -285,11 +284,6 @@ export class BasketService {
         submitted: requests.filter(r => r.status === 'submitted').length,
         approved: requests.filter(r => r.status === 'approved').length,
         rejected: requests.filter(r => r.status === 'rejected').length
-      },
-      byPriority: {
-        low: requests.filter(r => r.priority === 'low').length,
-        normal: requests.filter(r => r.priority === 'normal').length,
-        high: requests.filter(r => r.priority === 'high').length
       }
     };
   }
@@ -300,12 +294,11 @@ export class BasketService {
   exportAsCSV(): string {
     const headers = [
       'Action',
-      'Entity Name',
+      'Donor Name',
       'Suggested Code',
       'Custom Code',
       'Contributor Type',
       'Status',
-      'Priority',
       'Contact Name',
       'Contact Email',
       'Created At',
@@ -319,7 +312,6 @@ export class BasketService {
       req.customCode || '',
       req.contributorType,
       req.status,
-      req.priority,
       req.contactName,
       req.contactEmail,
       req.createdAt.toISOString(),

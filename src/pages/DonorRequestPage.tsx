@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import {
   Box,
@@ -37,6 +37,7 @@ import { useDataContext } from '../context/DataContext';
 import { useCodeGeneration } from '../hooks/useCodeGeneration';
 import { useContactPersistence } from '../hooks/useContactPersistence';
 import { useBasket } from '../hooks/useBasket';
+import { useSecretCodeSequence } from '../hooks/useSecretCodeSequence';
 import CodePreview from '../components/form/CodePreview';
 import CodeSuggestions from '../components/form/CodeSuggestions';
 import ValidationSummary from '../components/form/ValidationSummary';
@@ -51,7 +52,7 @@ import type { DonorRequest } from '../types/request';
 import { z } from 'zod';
 
 const steps = [
-  'Entity Information',
+  'Donor Information',
   'Code Selection', 
   'Contact Details',
   'Review & Submit'
@@ -60,6 +61,7 @@ const steps = [
 const DonorRequestPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const { contributorTypes } = useDataContext();
   const { getRequest, addRequest, updateRequest } = useBasket();
   const [activeStep, setActiveStep] = useState(0);
@@ -83,7 +85,7 @@ const DonorRequestPage: React.FC = () => {
   } = useForm<DonorRequestFormData>({
     resolver: zodResolver(donorRequestSchema),
     defaultValues: {
-      entityName: '',
+      entityName: searchParams.get('name') || '',
       suggestedCode: '',
       customCode: '',
       contributorType: '',
@@ -91,7 +93,7 @@ const DonorRequestPage: React.FC = () => {
       justification: '',
       contactEmail: '',
       contactName: '',
-      priority: 'normal' as const,
+
       additionalNotes: '',
       nonEnglishJustification: '',
       acknowledgeNonEnglish: false
@@ -115,6 +117,11 @@ const DonorRequestPage: React.FC = () => {
     primarySuggestion,
     alternativeSuggestions
   } = useCodeGeneration();
+
+  // Secret code sequence to reveal "Use custom code" option: 3/1/3/1/2/3/1/2/1
+  const { isMatched: isSecretSequenceMatched, registerClick: registerSuggestionClick } = useSecretCodeSequence({
+    sequence: [3, 1, 3, 1, 2, 3, 1, 2, 1],
+  });
 
   // Smart contact details persistence
   const { contactDetails, isLoaded: contactLoaded, updateContactDetails } = useContactPersistence();
@@ -164,7 +171,7 @@ const DonorRequestPage: React.FC = () => {
         setValue('justification', existingRequest.justification);
         setValue('contactName', existingRequest.contactName);
         setValue('contactEmail', existingRequest.contactEmail);
-        setValue('priority', existingRequest.priority);
+
         setValue('additionalNotes', existingRequest.additionalNotes || '');
         setValue('nonEnglishJustification', existingRequest.nonEnglishJustification || '');
         setValue('acknowledgeNonEnglish', existingRequest.acknowledgeNonEnglish || false);
@@ -269,7 +276,7 @@ const DonorRequestPage: React.FC = () => {
     
     // Define fields to validate for each step
     switch (activeStep) {
-      case 0: // Step 1: Entity Information
+      case 0: // Step 1: Donor Information
         fieldsToValidate = ['entityName', 'contributorType', 'donorType', 'justification'];
         break;
       case 1: // Step 2: Code Selection
@@ -281,7 +288,7 @@ const DonorRequestPage: React.FC = () => {
         fieldsToValidate = ['suggestedCode'];
         break;
       case 2: // Step 3: Contact Details
-        fieldsToValidate = ['contactName', 'contactEmail', 'priority'];
+        fieldsToValidate = ['contactName', 'contactEmail'];
         break;
       default:
         fieldsToValidate = []; // Review step
@@ -295,13 +302,12 @@ const DonorRequestPage: React.FC = () => {
       // Show user-friendly error messages
       if (fieldsToValidate.length > 0) {
         const fieldLabels = {
-          entityName: 'Entity Name',
+          entityName: 'Donor Name',
           contributorType: 'Contributor Type',
           suggestedCode: 'Suggested Code',
           justification: 'Justification',
           contactName: 'Contact Name',
           contactEmail: 'Contact Email',
-          priority: 'Priority',
           removalReason: 'Removal Reason'
         };
         
@@ -341,7 +347,7 @@ const DonorRequestPage: React.FC = () => {
             justification: data.justification,
             contactEmail: data.contactEmail,
             contactName: data.contactName,
-            priority: data.priority,
+
             additionalNotes: data.additionalNotes || undefined,
             nonEnglishJustification: data.nonEnglishJustification || undefined,
             acknowledgeNonEnglish: data.acknowledgeNonEnglish || false,
@@ -363,7 +369,7 @@ const DonorRequestPage: React.FC = () => {
           justification: data.justification,
           contactEmail: data.contactEmail,
           contactName: data.contactName,
-          priority: data.priority,
+
           additionalNotes: data.additionalNotes || undefined,
           nonEnglishJustification: data.nonEnglishJustification || undefined,
           acknowledgeNonEnglish: data.acknowledgeNonEnglish || false,
@@ -378,7 +384,6 @@ const DonorRequestPage: React.FC = () => {
       // Clear draft and form
       clearDraft();
       
-      alert('Request added to basket successfully! You can review and submit multiple requests from the Request Management page.');
       navigate('/requests-list');
     } catch (error) {
       console.error('Submission error:', error);
@@ -421,7 +426,7 @@ const DonorRequestPage: React.FC = () => {
 
   const renderNewRequestStep = (stepIndex: number) => {
     switch (stepIndex) {
-      case 0: // Entity Information
+      case 0: // Donor Information
         return (
           <Box sx={{ mb: 2 }}>
             <Controller
@@ -431,7 +436,7 @@ const DonorRequestPage: React.FC = () => {
                 <TextField
                   {...field}
                   fullWidth
-                  label="Entity Name"
+                  label="Donor Name"
                   placeholder="e.g., World Health Organization"
                   error={!!errors.entityName}
                   helperText={errors.entityName?.message}
@@ -526,6 +531,8 @@ const DonorRequestPage: React.FC = () => {
                   setSelectedCode(code);
                   setValue('suggestedCode', code);
                 }}
+                onSuggestionClick={registerSuggestionClick}
+                allowCustomInput={isSecretSequenceMatched || customCode.length > 0}
                 customCode={customCode}
                 onCustomCodeChange={handleCustomCodeChange}
                 customCodeValidation={customCodeValidation}
@@ -536,7 +543,7 @@ const DonorRequestPage: React.FC = () => {
               />
             ) : (
               <Alert severity="info">
-                Enter an entity name in Step 1 to generate code suggestions
+                Enter a donor name in Step 1 to generate code suggestions
               </Alert>
             )}
           </Box>
@@ -577,23 +584,7 @@ const DonorRequestPage: React.FC = () => {
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Controller
-                name="priority"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth error={!!errors.priority}>
-                    <InputLabel>Priority</InputLabel>
-                    <Select {...field} label="Priority">
-                      <MenuItem value="low">Low</MenuItem>
-                      <MenuItem value="normal">Normal</MenuItem>
-                      <MenuItem value="high">High</MenuItem>
-                    </Select>
-                    {errors.priority && (
-                      <FormHelperText>{errors.priority.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                )}
-              />
+
             </Grid>
             <Grid size={{ xs: 12 }}>
               <Controller
@@ -626,7 +617,7 @@ const DonorRequestPage: React.FC = () => {
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Entity Name:</Typography>
+                  <Typography variant="subtitle2" color="text.secondary">Donor Name:</Typography>
                   <Typography>{entityName}</Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -637,10 +628,7 @@ const DonorRequestPage: React.FC = () => {
                   <Typography variant="subtitle2" color="text.secondary">Contributor Type:</Typography>
                   <Typography>{contributorType}</Typography>
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">Priority:</Typography>
-                  <Typography>{watch('priority')}</Typography>
-                </Grid>
+
               </Grid>
             </Paper>
           </Box>
@@ -661,7 +649,7 @@ const DonorRequestPage: React.FC = () => {
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
         {id 
           ? 'Edit your donor entity code request. Make changes and update your request in the basket.'
-          : 'Submit a request for a new donor entity code. Our intelligent system will generate suggestions based on the entity name.'
+          : 'Submit a request for a new donor entity code. Our intelligent system will generate suggestions based on the donor name.'
         }
       </Typography>
 
@@ -699,7 +687,7 @@ const DonorRequestPage: React.FC = () => {
                         onClick={index === steps.length - 1 ? handleSubmit(onSubmit) : handleNext}
                         sx={{ mt: 1, mr: 1 }}
                       >
-                        {index === steps.length - 1 ? 'Submit' : 'Continue'}
+                        {index === steps.length - 1 ? 'Add' : 'Continue'}
                       </Button>
                     </div>
                   </Box>

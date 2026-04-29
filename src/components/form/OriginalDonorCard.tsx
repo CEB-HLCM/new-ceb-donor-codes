@@ -55,10 +55,10 @@ const OriginalDonorCard: React.FC<OriginalDonorCardProps> = ({
         </Typography>
         
         <Box sx={{ mt: 2 }}>
-          {/* Entity Name */}
+          {/* Donor Name */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-              Entity Name:
+              Donor Name:
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
               {donor.NAME}

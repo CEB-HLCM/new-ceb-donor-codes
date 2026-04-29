@@ -39,8 +39,8 @@ export function extractInitials(entityName: string): string[] {
   // Generate different initial patterns
   const patterns: string[] = [];
 
-  // Pattern 1: First letter of each significant word
-  if (significantWords.length > 0) {
+  // Pattern 1: First letter of each significant word (only if 3+ words)
+  if (significantWords.length >= 3) {
     patterns.push(significantWords.map(word => word[0]).join(''));
   }
 
