@@ -52,7 +52,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   const totalPages = Math.ceil(results.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedResults = showPagination 
+  const paginatedResults = showPagination
     ? results.slice(startIndex, startIndex + itemsPerPage)
     : results;
 
@@ -70,15 +70,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     if (!highlighted || highlighted === text) {
       return text;
     }
-    
+
     // Parse highlighted text with <mark> tags - using Box instead of span for better styling
     return (
       <Box
         component="span"
         dangerouslySetInnerHTML={{ __html: highlighted }}
         sx={(theme) => ({
-          '& mark': { 
-            backgroundColor: theme.palette.mode === 'dark' ? '#1565c0' : '#bbdefb', 
+          '& mark': {
+            backgroundColor: theme.palette.mode === 'dark' ? '#1565c0' : '#bbdefb',
             padding: '0 2px',
             borderRadius: '2px',
             fontWeight: 'bold',
@@ -113,11 +113,52 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
-  if (!stats || results.length === 0) {
+  if (!stats) {
     return (
       <Alert severity="info" sx={{ mt: 2 }}>
-        {!stats ? 'Enter a search term to find donors' : 'No results found for your search.'}
+        Enter a search term to find donors
       </Alert>
+    );
+  }
+
+  if (results.length === 0) {
+    return (
+      <Box>
+        <Alert severity="info" sx={{ mt: 2 }}>
+          No results found for your search.
+        </Alert>
+        
+        {/* Donor Creation Request */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+            p: 2,
+            border: '1px solid',
+            borderColor: 'info.main',
+            borderRadius: 1,
+            backgroundColor: (theme) => theme.palette.mode === 'dark'
+              ? 'rgba(33, 150, 243, 0.05)'
+              : 'rgba(25, 118, 210, 0.05)'
+          }}
+        >
+          <Typography variant="body2" color="text.primary">
+            If you're sure the donor you're looking for doesn't exist, you can request its creation.
+          </Typography>
+          <Button
+            component={Link}
+            to={`/donor-request?name=${encodeURIComponent(stats.query || '')}`}
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<PersonAddIcon />}
+          >
+            Request Donor Code
+          </Button>
+        </Box>
+      </Box>
     );
   }
 
@@ -129,10 +170,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <Typography variant="body2" color="text.secondary">
             <strong>{stats.totalResults}</strong> results found in {formatSearchTime(stats.searchTime)}
           </Typography>
-          <Chip 
-            label={`${stats.searchType} search`} 
-            size="small" 
-            variant="outlined" 
+          <Chip
+            label={`${stats.searchType} search`}
+            size="small"
+            variant="outlined"
           />
           {stats.query && (
             <Typography variant="body2" color="text.secondary">
@@ -140,7 +181,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             </Typography>
           )}
         </Box>
-        
+
         {onExportResults && results.length > 0 && (
           <Button
             variant="outlined"
@@ -153,17 +194,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       </Box>
 
       {/* Donor Creation Request */}
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           mb: 2,
           p: 2,
           border: '1px solid',
           borderColor: 'info.main',
           borderRadius: 1,
-          backgroundColor: (theme) => theme.palette.mode === 'dark' 
+          backgroundColor: (theme) => theme.palette.mode === 'dark'
             ? 'rgba(33, 150, 243, 0.05)'
             : 'rgba(25, 118, 210, 0.05)'
         }}
@@ -179,7 +220,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           size="small"
           startIcon={<PersonAddIcon />}
         >
-          Request Donor Code Creation
+          Request Donor Code
         </Button>
       </Box>
 
@@ -210,12 +251,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip 
+                    <Chip
                       label={getTypeDisplayName(donor)}
                       color={getTypeColor(donor)}
                       size="small"
                       title={donor.contributorTypeInfo?.DEFINITION || 'No definition available'}
-                      sx={{ 
+                      sx={{
                         maxWidth: '200px',
                         '& .MuiChip-label': {
                           overflow: 'hidden',
@@ -226,13 +267,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     />
                   </TableCell>
                   <TableCell>
-                    <Chip 
+                    <Chip
                       label={donor['CONTRIBUTOR TYPE'] || 'Unknown'}
                       color="primary"
                       size="small"
                       variant="outlined"
                       title={`${donor['CONTRIBUTOR TYPE']}: ${donor.contributorTypeInfo?.NAME || 'Unknown'}`}
-                      sx={{ 
+                      sx={{
                         fontFamily: 'monospace',
                         fontWeight: 'bold'
                       }}
@@ -256,12 +297,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                         to={`/donor-update/${encodeURIComponent(donor['CEB CODE'])}`}
                         variant="contained"
                         size="small"
-                        sx={(theme) => ({ 
-                          backgroundColor: theme.palette.mode === 'dark' 
+                        sx={(theme) => ({
+                          backgroundColor: theme.palette.mode === 'dark'
                             ? theme.palette.action?.update || '#2196f3'
                             : '#1976d2',
                           color: 'white',
-                          '&:hover': { 
+                          '&:hover': {
                             backgroundColor: theme.palette.mode === 'dark'
                               ? theme.palette.action?.updateHover || '#1976d2'
                               : '#1565c0'
@@ -275,12 +316,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                         to={`/donor-remove/${encodeURIComponent(donor['CEB CODE'])}`}
                         variant="contained"
                         size="small"
-                        sx={(theme) => ({ 
+                        sx={(theme) => ({
                           backgroundColor: theme.palette.mode === 'dark'
                             ? theme.palette.action?.remove || '#1565c0'
                             : '#0d47a1',
                           color: 'white',
-                          '&:hover': { 
+                          '&:hover': {
                             backgroundColor: theme.palette.mode === 'dark'
                               ? theme.palette.action?.removeHover || '#0d47a1'
                               : '#0a237d'

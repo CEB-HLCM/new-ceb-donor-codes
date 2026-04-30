@@ -15,14 +15,12 @@ import {
   Typography,
   Divider,
   Button,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+
   Tooltip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+
 import { SearchType, SearchField } from '../../services/searchService';
 import type { UseSearchReturn } from '../../hooks/useSearch';
 
@@ -141,23 +139,19 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   const hasActiveFilters = filters.governmentOnly || filters.nonGovernmentOnly || filters.contributorTypes.length > 0;
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">
-            Search Options
-            {hasActiveFilters && (
-              <Chip
-                label={`${filters.contributorTypes.length + (filters.governmentOnly ? 1 : 0) + (filters.nonGovernmentOnly ? 1 : 0)} filters active`}
-                color="primary"
-                size="small"
-                sx={{ ml: 2 }}
-              />
-            )}
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+      <Typography variant="h6" gutterBottom>
+        Search Options
+        {hasActiveFilters && (
+          <Chip
+            label={`${filters.contributorTypes.length + (filters.governmentOnly ? 1 : 0) + (filters.nonGovernmentOnly ? 1 : 0)} filters active`}
+            color="primary"
+            size="small"
+            sx={{ ml: 2 }}
+          />
+        )}
+      </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Search Type and Field */}
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -191,7 +185,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 >
                   <MenuItem value={SearchField.ALL}>All Fields</MenuItem>
                   <MenuItem value={SearchField.NAME}>Name Only</MenuItem>
-                  <MenuItem value={SearchField.CEB_CODE}>CEB Code Only</MenuItem>
+                  <MenuItem value={SearchField.CEB_CODE}>Code Only</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -321,9 +315,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               </Box>
             )}
           </Box>
-        </AccordionDetails>
-      </Accordion>
     </Box>
+
   );
 };
 
