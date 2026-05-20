@@ -332,35 +332,32 @@ export class EmailService {
   }
 
   /**
-   * Format CSV lines for new requests (for database addition)
-   * Matches the DONORS.csv structure: NAME,TYPE,CEB CODE,CONTRIBUTOR TYPE
+   * Format TSV lines for new requests (for Excel copy/paste)
+   * Format: NAME\tCEB CODE\tCONTRIBUTOR TYPE
    */
   private formatCsvSnippets(newRequests: DonorRequest[]): string {
     if (newRequests.length === 0) {
-      return 'No new requests requiring CSV database entries.';
+      return 'No new requests requiring database entries.';
     }
 
     const lines = [];
-    lines.push('CSV DATABASE ENTRIES FOR NEW REQUESTS:');
+    lines.push('TSV DATABASE ENTRIES FOR NEW REQUESTS:');
     lines.push('=======================================');
-    lines.push('Copy and paste the lines below into DONORS.csv');
-    lines.push('');
-    lines.push('CSV Format: NAME,TYPE,CEB CODE,CONTRIBUTOR TYPE');
+    lines.push('Copy and paste the lines below into Excel');
     lines.push('');
 
-    newRequests.forEach((req, index) => {
-      // Format: NAME,TYPE,CEB CODE,CONTRIBUTOR TYPE
+    // Header row
+    lines.push('NAME\tCEB CODE\tCONTRIBUTOR TYPE');
+
+    // Data rows
+    newRequests.forEach((req) => {
+      // Format: NAME\tCEB CODE\tCONTRIBUTOR TYPE (TSV for Excel)
       const name = req.entityName;
-      const type = this.getTypeFromContributorType(req.contributorType);
       const code = req.customCode || req.suggestedCode;
       const contributorType = req.contributorType;
       
-      // Escape commas in name field if present (wrap in quotes)
-      const escapedName = name.includes(',') ? `"${name}"` : name;
-      
-      const csvLine = `${escapedName},${type},${code},${contributorType}`;
-      
-      lines.push(`${index + 1}. ${csvLine}`);
+      const tsvLine = `${name}\t${code}\t${contributorType}`;
+      lines.push(tsvLine);
     });
 
     return lines.join('\n');
