@@ -334,6 +334,7 @@ export class EmailService {
   /**
    * Format TSV lines for new requests (for Excel copy/paste)
    * Format: NAME\tCEB CODE\tCONTRIBUTOR TYPE
+   * Uses HTML <pre> tag to preserve tabs in emails
    */
   private formatCsvSnippets(newRequests: DonorRequest[]): string {
     if (newRequests.length === 0) {
@@ -360,7 +361,9 @@ export class EmailService {
       lines.push(tsvLine);
     });
 
-    return lines.join('\n');
+    // Wrap in <pre> tag to preserve tabs in HTML emails
+    const content = lines.join('\n');
+    return `<pre>${content}</pre>`;
   }
 
   /**
