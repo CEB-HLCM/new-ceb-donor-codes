@@ -532,7 +532,7 @@ const DonorRequestPage: React.FC = () => {
                   setValue('suggestedCode', code);
                 }}
                 onSuggestionClick={registerSuggestionClick}
-                allowCustomInput={isSecretSequenceMatched || customCode.length > 0}
+                allowCustomInput={true}
                 customCode={customCode}
                 onCustomCodeChange={handleCustomCodeChange}
                 customCodeValidation={customCodeValidation}
