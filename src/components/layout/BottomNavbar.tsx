@@ -7,11 +7,9 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  PersonAdd as PersonAddIcon,
   People as PeopleIcon,
   ListAlt as ListAltIcon,
   Help as HelpIcon,
-  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -26,25 +24,21 @@ const BottomNavbar: React.FC<BottomNavbarProps> = ({ requestCount = 0 }) => {
   // Map current path to navigation value
   const getNavigationValue = (pathname: string): number => {
     switch (pathname) {
-      case '/':
-        return 0;
       case '/search':
-        return 1;
-      case '/donor-request':
-        return 2;
+        return 0;
       case '/donors':
-        return 3;
+        return 1;
       case '/requests-list':
-        return 4;
+        return 2;
       case '/help':
-        return 5;
+        return 3;
       default:
         return 0;
     }
   };
 
   const handleNavigationChange = (event: React.SyntheticEvent, newValue: number) => {
-    const routes = ['/', '/search', '/donor-request', '/donors', '/requests-list', '/help'];
+    const routes = ['/search', '/donors', '/requests-list', '/help'];
     navigate(routes[newValue]);
   };
 
@@ -74,19 +68,9 @@ const BottomNavbar: React.FC<BottomNavbarProps> = ({ requestCount = 0 }) => {
         }}
       >
         <BottomNavigationAction
-          icon={<HomeIcon />}
-          aria-label="Home"
-          title="Home"
-        />
-        <BottomNavigationAction
           icon={<SearchIcon />}
           aria-label="Search"
           title="Search Donors"
-        />
-        <BottomNavigationAction
-          icon={<PersonAddIcon />}
-          aria-label="Add Donor"
-          title="Add New Donor"
         />
         <BottomNavigationAction
           icon={<PeopleIcon />}
