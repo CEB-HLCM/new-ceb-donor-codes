@@ -8,7 +8,6 @@ import DonorRemovePage from './pages/DonorRemovePage';
 import DonorsListPage from './pages/DonorsListPage';
 import RequestsListPage from './pages/RequestsListPage';
 import HelpPage from './pages/HelpPage';
-import SearchApiPage from './pages/SearchApiPage';
 import { useBasketStats } from './hooks/useBasket';
 
 function App() {
@@ -19,7 +18,6 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/api/search" element={<SearchApiPage />} />
       <Route 
         path="/" 
         element={
