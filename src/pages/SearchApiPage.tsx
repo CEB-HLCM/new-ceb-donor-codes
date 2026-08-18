@@ -49,7 +49,15 @@ export default function SearchApiPage() {
     if (!codesParam) {
       setResponse({
         success: false,
-        error: 'Missing "codes" parameter. Use ?codes=CODE1,CODE2',
+        error: 'Missing "codes" parameter. Use ?codes=CODE1,CODE2&threshold=0.4',
+        documentation: {
+          description: 'Search CEB donor codes and return matching candidates with a score.',
+          parameters: {
+            codes: 'Comma-separated list of donor codes to search (required)',
+            threshold: 'Fuzzy matching threshold from 0 (strict) to 1 (permissive). Default: 0.4'
+          },
+          example: '/api/search?codes=UNIPD,CH&threshold=0.3'
+        },
         timestamp: new Date().toISOString()
       });
       return;
@@ -68,6 +76,9 @@ export default function SearchApiPage() {
 
     searchService.updateData(donorsWithTypes);
 
+    const thresholdParam = searchParams.get('threshold');
+    const threshold = thresholdParam ? Math.min(1, Math.max(0, parseFloat(thresholdParam))) : 0.4;
+
     const results: ApiSearchResult[] = codes.map(code => {
       const searchResult = searchService.search(code, {
         searchType: SearchType.EXACT,
@@ -79,7 +90,7 @@ export default function SearchApiPage() {
         ? searchService.search(code, {
             searchType: SearchType.FUZZY,
             searchField: SearchField.CEB_CODE,
-            fuzzyThreshold: 0.4,
+            fuzzyThreshold: threshold,
             maxResults: 10
           })
         : searchResult;
