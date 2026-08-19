@@ -54,6 +54,7 @@ export default function ContributorToolPage() {
   const [querying, setQuerying] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<'all' | 'exact' | 'fuzzy' | 'unknown'>('all');
   const [selectedContributorTypes, setSelectedContributorTypes] = useState<Map<number, string>>(new Map());
+  const [selectedCodes, setSelectedCodes] = useState<Map<number, number>>(new Map());
   const abortRef = useRef<AbortController | null>(null);
 
   const stopQueries = useCallback(() => {
@@ -245,6 +246,27 @@ Respond in JSON format only:
     }
   };
 
+  const handleCodeSelect = (index: number, codeIndex: number) => {
+    setSelectedCodes(prev => {
+      const next = new Map(prev);
+      next.set(index, codeIndex);
+      return next;
+    });
+  };
+
+  const getSelectedCode = (index: number, r: ParsedCode): string => {
+    if (selectedCodes.has(index)) {
+      const codeIndex = selectedCodes.get(index)!;
+      if (r.generatedCodes && r.generatedCodes[codeIndex]) {
+        return r.generatedCodes[codeIndex];
+      }
+    }
+    if (r.generatedCodes && r.generatedCodes.length > 0) {
+      return r.generatedCodes[0];
+    }
+    return r.raw;
+  };
+
   const toggleSelect = (index: number) => {
     setSelected(prev => {
       const next = new Set(prev);
@@ -297,11 +319,9 @@ Respond in JSON format only:
     const rows = selectedResults.map(r => {
       const actualIndex = results.indexOf(r);
       const contributorType = getContributorType(actualIndex, r);
+      const code = getSelectedCode(actualIndex, r);
       
       if (r.llmResult) {
-        const code = r.generatedCodes && r.generatedCodes.length > 0 
-          ? r.generatedCodes[0] 
-          : r.raw;
         return [
           r.llmResult.organization,
           code,
@@ -317,7 +337,7 @@ Respond in JSON format only:
       }
       return [
         'Unknown',
-        r.raw,
+        code,
         contributorType,
       ].join('\t');
     });
@@ -340,11 +360,9 @@ Respond in JSON format only:
     const rows = selectedResults.map(r => {
       const actualIndex = results.indexOf(r);
       const contributorType = getContributorType(actualIndex, r);
+      const code = getSelectedCode(actualIndex, r);
       
       if (r.llmResult) {
-        const code = r.generatedCodes && r.generatedCodes.length > 0 
-          ? r.generatedCodes[0] 
-          : r.raw;
         return [
           r.llmResult.organization,
           code,
@@ -360,7 +378,7 @@ Respond in JSON format only:
       }
       return [
         'Unknown',
-        r.raw,
+        code,
         contributorType,
       ].join('\t');
     });
@@ -571,16 +589,22 @@ Respond in JSON format only:
                           <Typography variant="caption" color="text.secondary">{r.llmResult.reason}</Typography>
                           {r.generatedCodes && r.generatedCodes.length > 0 && (
                             <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                              {r.generatedCodes.map((code, idx) => (
-                                <Chip
-                                  key={idx}
-                                  label={code}
-                                  size="small"
-                                  color={idx === 0 ? 'primary' : 'default'}
-                                  variant={idx === 0 ? 'filled' : 'outlined'}
-                                  sx={{ fontWeight: 500 }}
-                                />
-                              ))}
+                              {r.generatedCodes.map((code, idx) => {
+                                const isSelected = selectedCodes.has(i) 
+                                  ? selectedCodes.get(i) === idx 
+                                  : idx === 0;
+                                return (
+                                  <Chip
+                                    key={idx}
+                                    label={code}
+                                    size="small"
+                                    color={isSelected ? 'primary' : 'default'}
+                                    variant={isSelected ? 'filled' : 'outlined'}
+                                    sx={{ fontWeight: 500, cursor: 'pointer' }}
+                                    onClick={() => handleCodeSelect(i, idx)}
+                                  />
+                                );
+                              })}
                             </Box>
                           )}
                         </Box>
@@ -599,16 +623,22 @@ Respond in JSON format only:
                             Proposed codes:
                           </Typography>
                           <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                            {r.generatedCodes.map((code, idx) => (
-                              <Chip
-                                key={idx}
-                                label={code}
-                                size="small"
-                                color={idx === 0 ? 'primary' : 'default'}
-                                variant={idx === 0 ? 'filled' : 'outlined'}
-                                sx={{ fontWeight: 500 }}
-                              />
-                            ))}
+                            {r.generatedCodes.map((code, idx) => {
+                              const isSelected = selectedCodes.has(i) 
+                                ? selectedCodes.get(i) === idx 
+                                : idx === 0;
+                              return (
+                                <Chip
+                                  key={idx}
+                                  label={code}
+                                  size="small"
+                                  color={isSelected ? 'primary' : 'default'}
+                                  variant={isSelected ? 'filled' : 'outlined'}
+                                  sx={{ fontWeight: 500, cursor: 'pointer' }}
+                                  onClick={() => handleCodeSelect(i, idx)}
+                                />
+                              );
+                            })}
                           </Box>
                         </Box>
                       ) : (
