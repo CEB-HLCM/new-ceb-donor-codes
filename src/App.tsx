@@ -8,6 +8,7 @@ import DonorRemovePage from './pages/DonorRemovePage';
 import DonorsListPage from './pages/DonorsListPage';
 import RequestsListPage from './pages/RequestsListPage';
 import HelpPage from './pages/HelpPage';
+import ContributorToolPage from './pages/ContributorToolPage';
 import { useBasketStats } from './hooks/useBasket';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
 
   return (
     <Routes>
+      <Route path="/contributor-tool" element={<ContributorToolPage />} />
       <Route 
         path="/" 
         element={
