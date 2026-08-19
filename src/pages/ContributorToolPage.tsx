@@ -341,22 +341,17 @@ Respond in JSON format only:
       const contributorType = getContributorType(actualIndex, r);
       const code = getSelectedCode(actualIndex, r);
       
-      if (r.llmResult) {
+      const name = r.name || r.llmResult?.organization || r.match?.NAME || 'Unknown';
+      
+      if (r.llmResult || r.match) {
         return [
-          r.llmResult.organization,
-          code,
-          contributorType,
-        ].join('\t');
-      }
-      if (r.match) {
-        return [
-          r.match.NAME,
-          r.match['CEB CODE'],
+          name,
+          r.match ? r.match['CEB CODE'] : code,
           contributorType,
         ].join('\t');
       }
       return [
-        r.name || 'Unknown',
+        name,
         code,
         contributorType,
       ].join('\t');
@@ -382,22 +377,17 @@ Respond in JSON format only:
       const contributorType = getContributorType(actualIndex, r);
       const code = getSelectedCode(actualIndex, r);
       
-      if (r.llmResult) {
+      const name = r.name || r.llmResult?.organization || r.match?.NAME || 'Unknown';
+      
+      if (r.llmResult || r.match) {
         return [
-          r.llmResult.organization,
-          code,
-          contributorType,
-        ].join('\t');
-      }
-      if (r.match) {
-        return [
-          r.match.NAME,
-          r.match['CEB CODE'],
+          name,
+          r.match ? r.match['CEB CODE'] : code,
           contributorType,
         ].join('\t');
       }
       return [
-        r.name || 'Unknown',
+        name,
         code,
         contributorType,
       ].join('\t');
