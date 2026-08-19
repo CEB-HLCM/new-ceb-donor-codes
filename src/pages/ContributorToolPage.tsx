@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   ContentCopy, ExpandMore, ExpandLess, Search,
-  CheckCircle, Warning, HelpOutline, Download, Stop,
+  CheckCircle, Warning, HelpOutline, Download, Stop, Edit,
 } from '@mui/icons-material';
 import Fuse from 'fuse.js';
 import { useAppData } from '../hooks/useAppData';
@@ -55,6 +55,8 @@ export default function ContributorToolPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'exact' | 'fuzzy' | 'unknown'>('all');
   const [selectedContributorTypes, setSelectedContributorTypes] = useState<Map<number, string>>(new Map());
   const [selectedCodes, setSelectedCodes] = useState<Map<number, number>>(new Map());
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState('');
   const abortRef = useRef<AbortController | null>(null);
 
   const stopQueries = useCallback(() => {
@@ -149,7 +151,7 @@ Potential match found:
 - Match confidence: ${matchScore}%
 ${parsedCode.name ? `- User provided name: "${parsedCode.name}"` : ''}
 
-Please search the web to verify:
+Please verify:
 1. Is this the same organization? (confirmed: true/false)
 2. Is the current contributor type "${matchType}" correct for this organization?
 
@@ -166,7 +168,7 @@ Respond in JSON format only:
     } else {
       prompt = `I have a donor code "${parsedCode.raw}" that I need to identify. This code does not match any existing code in our database.${nameInfo}
 
-Please search the web to identify what organization, company, or entity this code likely refers to.
+Please identify what organization, company, or entity this code likely refers to.
 
 Determine the appropriate contributor type from this list:
 ${typesDescription}
@@ -276,6 +278,24 @@ Respond in JSON format only:
     });
   };
 
+  const startEditing = (index: number, currentName: string) => {
+    setEditingIndex(index);
+    setEditingName(currentName);
+  };
+
+  const saveEditing = (index: number) => {
+    setResults(prev => prev.map((r, i) => 
+      i === index ? { ...r, name: editingName || undefined } : r
+    ));
+    setEditingIndex(null);
+    setEditingName('');
+  };
+
+  const cancelEditing = () => {
+    setEditingIndex(null);
+    setEditingName('');
+  };
+
   const handleContributorTypeChange = (index: number, value: string) => {
     setSelectedContributorTypes(prev => {
       const next = new Map(prev);
@@ -336,7 +356,7 @@ Respond in JSON format only:
         ].join('\t');
       }
       return [
-        'Unknown',
+        r.name || 'Unknown',
         code,
         contributorType,
       ].join('\t');
@@ -377,7 +397,7 @@ Respond in JSON format only:
         ].join('\t');
       }
       return [
-        'Unknown',
+        r.name || 'Unknown',
         code,
         contributorType,
       ].join('\t');
@@ -567,9 +587,49 @@ Respond in JSON format only:
                         color={r.status === 'exact' ? 'success' : r.status === 'fuzzy' ? 'warning' : 'default'}
                         variant="outlined"
                       />
-                      {r.name && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                          {r.name}
+                      {editingIndex === i ? (
+                        <TextField
+                          size="small"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onBlur={() => saveEditing(i)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEditing(i);
+                            if (e.key === 'Escape') cancelEditing();
+                          }}
+                          autoFocus
+                          sx={{ mt: 0.5, width: '100%' }}
+                        />
+                      ) : r.name ? (
+                        <Box 
+                          sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            mt: 0.5,
+                            cursor: 'pointer',
+                            '& .edit-icon': { opacity: 0 },
+                            '&:hover .edit-icon': { opacity: 1 },
+                          }}
+                          onClick={() => startEditing(i, r.name || '')}
+                        >
+                          <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+                            {r.name}
+                          </Typography>
+                          <Edit className="edit-icon" sx={{ fontSize: 14, color: 'text.secondary', ml: 0.5 }} />
+                        </Box>
+                      ) : (
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary" 
+                          sx={{ 
+                            display: 'block', 
+                            mt: 0.5,
+                            cursor: 'pointer',
+                            '&:hover': { color: 'primary.main' },
+                          }}
+                          onClick={() => startEditing(i, '')}
+                        >
+                          + Add name
                         </Typography>
                       )}
                     </TableCell>
